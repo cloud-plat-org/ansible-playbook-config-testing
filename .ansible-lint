@@ -1,7 +1,7 @@
 ---
 profile: basic
-skip_list: []
 exclude_paths:
-    - ~/.ansible/
-    - ~/ansible/test2/.ansible/
+  - .ansible/
+  - ansible/test2/.ansible/
+skip_list: []
 enable_list: []
