@@ -1,5 +1,10 @@
 ---
-profile: basic
+profile: basic        # Current (good starting point)
+# profile: min        # Most permissive
+# profile: moderate   # More strict
+# profile: safety     # Security focused
+# profile: shared     # Publishing ready
+# profile: production # Most strict
 exclude_paths:
   - .ansible/
   - ansible/test2/.ansible/
