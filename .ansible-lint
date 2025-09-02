@@ -8,5 +8,5 @@ profile: basic        # Current (good starting point)
 exclude_paths:
   - .ansible/
   - ansible/test2/.ansible/
-skip_list: []
-enable_list: []
+skip_list: []       # List of rules to skip
+enable_list: []     #
