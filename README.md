@@ -1,7 +1,8 @@
 # Red Hat Ansible Automation Platform Service on AWS.
 # This is using windows wsl Ubuntu
 
-Emergent’s Ansible as a Service leverages managed Ansible expertise for AWS deployments?
+
+## Install ansible-lint
 
 # 1. Install python3-venv
 sudo apt install python3-venv

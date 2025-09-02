@@ -1,11 +1,3 @@
-<img src="https://r2cdn.perplexity.ai/pplx-full-logo-primary-dark%402x.png" style="height:64px;margin-right:32px"/>
-
-# I would like to do it with minikube, so lets start from scratch and use Minikube.
-
-Great choice! Here’s a **step-by-step guide to install AWX on Minikube** using the supported AWX Operator method for modern AWX versions. This will let you get AWX running in a Kubernetes environment locally on your development machine.
-
-***
-
 ## 1. Prerequisites
 
 - **Ubuntu/WSL with Minikube support**
