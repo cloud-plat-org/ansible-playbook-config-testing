@@ -124,10 +124,24 @@ kubectl get svc -n awx
 Forward the port to your localhost:
 
 ```bash
+echo "127.0.1.1 ubuntuAWX" | sudo tee -a /etc/hosts
+minikube tunnel
+
+
 kubectl port-forward svc/awx-service -n awx 8080:80
+## for awx-kit commands:\
+minikube status
+minikube start
+kubectl get pods -n awx
+kubectl get svc -n awx
+# run in terminal outside editor:
+kubectl port-forward svc/awx-service -n awx 443:80
+
+
+
 ```
 
-Then, access `http://localhost:8080` from your browser.[^3]
+Then, access `http://localhost:8080` from your browser.
 
 ***
 
@@ -139,9 +153,21 @@ kubectl get secret awx-admin-password -n awx -o jsonpath="{.data.password}" | ba
 
 Username: **admin**
 
-***
 
-**Let me know if you want the detailed contents or layout of the AWX resource YAML, or if you have questions about customizing your deployment!**
-<span style="display:none">[^10][^11][^4][^5][^6][^7][^8][^9]</span>
+## 11. Install awxkit
+```bash
+python3 -m venv ~/awx-venv
+source ~/awx-venv/bin/activate
+pip install awxkit
+awx --version
+awx --conf.host https://localhost:8080 -k [login --conf.username admin --conf.password <your_awx_admin_password>
 
-<div style="text-align: center">⁂</div>
+```
+
+
+<!-- For Real HTTPS Access
+If you want your AWX to truly use SSL (so HTTPS works on port 443):
+
+You must configure an ingress controller (like NGINX Ingress) with TLS termination and a self-signed or valid certificate.
+
+This is a more advanced Kubernetes operation and requires extra config (Ingress resource and certs). -->
