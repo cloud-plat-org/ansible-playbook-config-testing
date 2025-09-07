@@ -3,8 +3,9 @@
 - **Ubuntu/WSL with Minikube support**
 - **Docker** installed and running (required by Minikube)
 - **kubectl** (Kubernetes CLI)
+- **jq** (json tool)
 
-Recommended resources: **8 GB RAM**, **2+ CPU cores**, **20 GB free space**.[^1][^2]
+Recommended resources: **8 GB RAM**, **2+ CPU cores**, **20 GB free space**.
 
 ***
 
@@ -15,6 +16,10 @@ curl -LO "https://dl.k8s.io/release/v1.30.1/bin/linux/amd64/kubectl"
 chmod +x kubectl
 sudo mv kubectl /usr/local/bin/
 kubectl version --client
+
+sudo apt update
+sudo apt install jq
+jq --version  # jq-1.7
 ```
 
 
@@ -38,7 +43,6 @@ minikube start --driver=docker --cpus=4 --memory=8g --addons=ingress
 ```
 
 Wait for the cluster to be up and ready.
-[^2][^1]
 
 ***
 
@@ -129,15 +133,16 @@ minikube tunnel
 
 
 kubectl port-forward svc/awx-service -n awx 8080:80
+ps: docker desktop start
 ## for awx-kit commands:\
+"/mnt/c/Program Files/Docker/Docker/Docker Desktop.exe"
 minikube status
 minikube start
+minikube tunnel
 kubectl get pods -n awx
 kubectl get svc -n awx
 # run in terminal outside editor:
 kubectl port-forward svc/awx-service -n awx 443:80
-
-
 
 ```
 
@@ -158,9 +163,12 @@ Username: **admin**
 ```bash
 python3 -m venv ~/awx-venv
 source ~/awx-venv/bin/activate
+python3 -m pip install --upgrade pip
+sudo apt install python3 python3-pip
 pip install awxkit
 awx --version
-awx --conf.host https://localhost:8080 -k [login --conf.username admin --conf.password <your_awx_admin_password>
+AWX_TOKEN=$(awx --conf.host https://localhost:443 -k login --conf.username admin --conf.password "$AWX_PASSWORD" | jq -r .token)
+awx --conf.host https://localhost:443 -k --conf.token "$AWX_TOKEN" host list
 
 ```
 

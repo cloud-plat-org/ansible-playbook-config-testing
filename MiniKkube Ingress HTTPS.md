@@ -112,36 +112,8 @@ host = https://localhost
 
 ## References
 
-- Minikube Addon for Ingress:[^2][^1]
-- Ingress TLS Walkthrough:[^3][^4]
-- AWX-specific self-signed and ingress examples:[^5][^6]
+- Minikube Addon for Ingress:
+- Ingress TLS Walkthrough:
+- AWX-specific self-signed and ingress examples:
 
 ***
-
-**Let me know if you hit any snags with paths, port numbers, or want a ready-to-paste YAML or further troubleshooting!**
-<span style="display:none">[^10][^11][^7][^8][^9]</span>
-
-<div style="text-align: center">⁂</div>
-
-[^1]: https://minikube.sigs.k8s.io/docs/tutorials/custom_cert_ingress/
-
-[^2]: https://kubernetes.io/docs/tasks/access-application-cluster/ingress-minikube/
-
-[^3]: https://kubernetes.github.io/ingress-nginx/user-guide/tls/
-
-[^4]: https://docs.azure.cn/en-us/aks/ingress-own-tls
-
-[^5]: https://www.reddit.com/r/awx/comments/1csmqin/how_generate_a_self_signed_certificate_and_enable/
-
-[^6]: https://stackoverflow.com/questions/65523064/using-self-signed-certificates-in-nginx-ingress
-
-[^7]: https://dev.to/bansikah/deploying-nginx-with-self-signed-tls-using-helm-and-minikube-dev-staging-environments-397
-
-[^8]: https://forum.ansible.com/t/awx-https-access-configuration-guide-no-where-to-be-found/35682
-
-[^9]: https://docs.netscaler.com/en-us/netscaler-k8s-ingress-controller/certificate-management/self-signed-certificate.html
-
-[^10]: https://gist.github.com/dmccuk/93db22e9b30d1963b8fca0de96fc82f0
-
-[^11]: https://www.haproxy.com/blog/enable-tls-with-lets-encrypt-and-the-haproxy-kubernetes-ingress-controller
-
