@@ -21,18 +21,22 @@
       debug:
         msg: "Running as: {{ whoami_result.stdout }}"
 
-    - name: Test systemctl access
-      command: systemctl status ssh
+    - name: Stop service using systemctl command
+      command: systemctl stop {{ service_name }}
       become: true
-      register: systemctl_result
+      register: stop_result
       ignore_errors: true
 
-    - name: Show systemctl result
+    - name: Show stop result
       debug:
-        msg: "Systemctl result: {{ systemctl_result.stdout }}"
+        msg: "Stop result: {{ stop_result.stdout }}"
 
-    - name: Stop service on Ubuntu servers
-      ansible.builtin.service:
-        name: "{{ service_name }}"
-        state: stopped
-      when: ansible_os_family == "Debian"
+    - name: Check service status after stop
+      command: systemctl status {{ service_name }}
+      become: true
+      register: status_result
+      ignore_errors: true
+
+    - name: Show final status
+      debug:
+        msg: "Final status: {{ status_result.stdout }}"
