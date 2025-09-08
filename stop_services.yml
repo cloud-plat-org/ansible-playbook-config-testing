@@ -6,13 +6,11 @@
   become_method: sudo
   become_user: daniv
   tasks:
-    - name: Debug - Show authentication info
+    - name: Debug - Show basic info
       debug:
         msg: |
           Host: {{ inventory_hostname }}
           User: {{ ansible_user }}
-          Become user: {{ ansible_become_user }}
-          Become method: {{ ansible_become_method }}
 
     - name: Test sudo access
       command: whoami

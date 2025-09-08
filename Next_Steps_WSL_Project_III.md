@@ -113,6 +113,11 @@ awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" project_update st
    awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" project get "$PROJECT_ID" | jq '.scm_revision'
 
 
+#TESTING: {See TroubleShooting_Password_AWX.md}
+
+
+
+
 ### THIS IS TO KICK OFF PLAYBOOKS  ###
 JOB_ID=$(awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" job_template launch \
   --job_template "Stop Services WSL" --extra_vars '{"service_name": "ssh"}' | jq -r .id)
