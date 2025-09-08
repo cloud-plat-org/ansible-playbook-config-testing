@@ -101,8 +101,9 @@ awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" project get "$PRO
 # Check the job's working directory
 awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" job get "$JOB_ID" | jq '.job_cwd'
 
+# Enable automatic sync when job is launched
+awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" project modify "$PROJECT_ID" --scm_update_on_launch true
 # Force sync:
-awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" project update "$PROJECT_ID" --scm_update_on_launch true
 awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" project get "$PROJECT_ID" | jq '.modified'
 
 # Check progress update
