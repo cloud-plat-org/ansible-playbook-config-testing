@@ -94,7 +94,12 @@ git log -1 --format="%H"
 # verify branch AWX is pulling:
 awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" project get "$PROJECT_ID" | jq '{scm_branch, scm_url}'
 # How to add or change a branch:
-awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" project modify "$PROJECT_ID" --scm_branch "main"
+awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" project modify "$PROJECT_ID" --scm_branch "CLPLAT-2221"
+awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" job get "$JOB_ID" | jq '.job_cwd'
+# Check the project's local path
+awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" project get "$PROJECT_ID" | jq '.local_path'
+# Check the job's working directory
+awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" job get "$JOB_ID" | jq '.job_cwd'
 
 # Force sync:
 awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" project update "$PROJECT_ID" --scm_update_on_launch true

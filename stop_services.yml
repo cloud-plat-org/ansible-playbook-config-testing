@@ -6,7 +6,7 @@
   become_method: sudo
   become_user: daniv
   vars:
-    ansible_become_password: "{{ ansible_ssh_pass }}"
+    ansible_become_password: "{{ ansible_password }}"
   tasks:
     - name: Debug - Show authentication info
       debug:
@@ -15,10 +15,10 @@
           User: {{ ansible_user }}
           Become user: {{ ansible_become_user }}
           Become method: {{ ansible_become_method }}
-          SSH password set: {{ ansible_ssh_pass is defined }}
+          SSH password set: {{ ansible_password is defined }}
           Become password set: {{ ansible_become_password is defined }}
           Become password value: {{ ansible_become_password }}
-          SSH password value: {{ ansible_ssh_pass }}
+          SSH password value: {{ ansible_password }}
 
     - name: Test sudo access
       command: whoami
