@@ -87,9 +87,25 @@ awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" project list | jq
 # Then capture just the ID
 PROJECT_ID=$(awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" project list | jq -r '.results[] | select(.name == "WSL Project") | .id')
 echo "WSL Project ID: $PROJECT_ID"
-
-
+### Compair the hash#
 awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" project get "$PROJECT_ID" | jq '.scm_revision'
+git log -1 --format="%H"
+
+# verify branch AWX is pulling:
+awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" project get "$PROJECT_ID" | jq '{scm_branch, scm_url}'
+# How to add or change a branch:
+awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" project modify "$PROJECT_ID" --scm_branch "main"
+
+# Force sync:
+awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" project update "$PROJECT_ID" --scm_update_on_launch true
+awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" project get "$PROJECT_ID" | jq '.modified'
+
+# Check progress update
+awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" project_update get 21 | jq '{status, started, finished, elapsed}'
+# Monitor the project update
+awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" project_update stdout 21
+   awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" project get "$PROJECT_ID" | jq '.scm_revision'
+
 
 ### THIS IS TO KICK OFF PLAYBOOKS  ###
 JOB_ID=$(awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" job_template launch \
