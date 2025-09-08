@@ -19,4 +19,4 @@ spec:
           service:
             name: awx-service
             port:
-              number: 8052  # Replace with your actual AWX service port if different
+              number: 80  # AWX service port

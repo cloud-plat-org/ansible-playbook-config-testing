@@ -1,20 +1,46 @@
 ---
-- name: Stop services on Ubuntu and Windows servers
+- name: Stop services on Ubuntu
   hosts: all_servers
   gather_facts: true
+  become: true
+  become_method: sudo
+  become_user: daniv
+  vars:
+    ansible_become_password: "{{ ansible_ssh_pass }}"
   tasks:
+    - name: Debug - Show authentication info
+      debug:
+        msg: |
+          Host: {{ inventory_hostname }}
+          User: {{ ansible_user }}
+          Become user: {{ ansible_become_user }}
+          Become method: {{ ansible_become_method }}
+          SSH password set: {{ ansible_ssh_pass is defined }}
+          Become password set: {{ ansible_become_password is defined }}
+          Become password value: {{ ansible_become_password }}
+          SSH password value: {{ ansible_ssh_pass }}
+
+    - name: Test sudo access
+      command: whoami
+      become: true
+      register: whoami_result
+
+    - name: Show whoami result
+      debug:
+        msg: "Running as: {{ whoami_result.stdout }}"
+
+    - name: Test systemctl access
+      command: systemctl status ssh
+      become: true
+      register: systemctl_result
+      ignore_errors: true
+
+    - name: Show systemctl result
+      debug:
+        msg: "Systemctl result: {{ systemctl_result.stdout }}"
+
     - name: Stop service on Ubuntu servers
       ansible.builtin.service:
         name: "{{ service_name }}"
         state: stopped
       when: ansible_os_family == "Debian"
-
-    - name: Stop service on Windows servers
-      ansible.builtin.service:
-        name: "{{ service_name }}"
-        state: stopped
-      when: ansible_os_family == "Windows"
-
-    - name: Display service status
-      debug:
-        msg: "Service {{ service_name }} stopped on {{ inventory_hostname }} ({{ ansible_os_family }})"
