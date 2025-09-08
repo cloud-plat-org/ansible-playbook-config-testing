@@ -79,6 +79,18 @@ Use your familiar launch command:
 ### HERE TO RUN ###
 ```bash
 
+### VERIFY AWX PICKS UP CHANGES TO PLAYBOOK  ###
+   # Check if AWX has the latest project revision
+awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" project list | jq '.results[] | {name, id, last_job_run, last_job_failed, status}'
+# Show the WSL Project details
+awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" project list | jq '.results[] | select(.name == "WSL Project")'
+# Then capture just the ID
+PROJECT_ID=$(awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" project list | jq -r '.results[] | select(.name == "WSL Project") | .id')
+echo "WSL Project ID: $PROJECT_ID"
+
+
+awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" project get "$PROJECT_ID" | jq '.scm_revision'
+
 ### THIS IS TO KICK OFF PLAYBOOKS  ###
 JOB_ID=$(awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" job_template launch \
   --job_template "Stop Services WSL" --extra_vars '{"service_name": "ssh"}' | jq -r .id)
