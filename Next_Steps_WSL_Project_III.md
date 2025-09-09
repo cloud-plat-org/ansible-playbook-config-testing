@@ -244,6 +244,7 @@ awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" credential get "$
 awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" credential modify 4 \
   --inputs "{\"username\": \"daniv\", \"ssh_key_data\": \"$(awk 'NF{printf "%s\\n",$0;}' ~/.ssh/awx_wsl_key_traditional)\"}"
 
+# Update credential with the working traditional RSA key
 
 # awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" credential modify "$CRED_ID" --inputs '{
 #   "username": "daniv", 
