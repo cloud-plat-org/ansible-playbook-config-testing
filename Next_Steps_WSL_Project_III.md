@@ -229,9 +229,21 @@ awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" credential get "$
 
 
 
+# Common Causes and Solutions
+# 1. Key Format
+# Ansible’s paramiko and OpenSSH typically want a PEM-format private key (header: -----BEGIN RSA PRIVATE KEY----- and footer: -----END RSA PRIVATE KEY-----).
 
-awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" credential modify "$CRED_ID" \
-  --inputs '{"username": "daniv", "ssh_key_data": "'"$(cat ~/.ssh/awx_wsl_key)"'"}'
+# Your command with -m PEM is correct for legacy format.
+# But later Python/cryptography libraries might reject some older, passwordless PEM keys (test with a passphrase if issues persist).
+
+# 2. Proper Key Upload (No Corrupted Newlines/Escape)
+# When uploading a key via CLI, careful quoting is required—especially so newlines in your PEM key remain intact.
+
+# Direct $(cat ...) in JSON can convert linebreaks to spaces, corrupting the key.
+
+awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" credential modify 4 \
+  --inputs "{\"username\": \"daniv\", \"ssh_key_data\": \"$(awk 'NF{printf "%s\\n",$0;}' ~/.ssh/awx_wsl_key_traditional)\"}"
+
 
 # awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" credential modify "$CRED_ID" --inputs '{
 #   "username": "daniv", 
