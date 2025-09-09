@@ -1,5 +1,3 @@
-# Create an enhanced version of the playbook
-cat > /home/daniv/ansible/test2/stop_services.yml << 'EOF'
 ---
 - name: Stop services on WSL instances
   hosts: all
@@ -63,4 +61,3 @@ cat > /home/daniv/ansible/test2/stop_services.yml << 'EOF'
           debug:
             msg: "Cron stop: {{ cron_result.rc }}, Resolved stop: {{ resolved_result.rc }}"
       when: service_name == "ssh"
-EOF
