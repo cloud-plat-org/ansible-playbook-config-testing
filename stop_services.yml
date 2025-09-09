@@ -33,8 +33,7 @@
 
     - name: Show stop result
       debug:
-        msg: "Stop result: {{ stop_result.stdout if stop_result.stdout else 'No output' }}"
-        var: stop_result.rc
+        msg: "Stop result: {{ stop_result.stdout if stop_result.stdout else 'No output' }}, RC: {{ stop_result.rc }}"
 
     - name: Check service status after stop
       command: systemctl status {{ service_name }}
