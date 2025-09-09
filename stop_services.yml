@@ -1,42 +1,15 @@
----
-- name: Stop services on Ubuntu
-  hosts: all_servers
-  gather_facts: true
-  become: true
-  become_method: sudo
-  become_user: daniv
-  tasks:
-    - name: Debug - Show basic info
-      debug:
-        msg: |
-          Host: {{ inventory_hostname }}
-          User: {{ ansible_user }}
-
-    - name: Test sudo access
-      command: whoami
-      become: true
-      register: whoami_result
-
-    - name: Show whoami result
-      debug:
-        msg: "Running as: {{ whoami_result.stdout }}"
-
-    - name: Stop service using systemctl command
-      command: systemctl stop {{ service_name }}
-      become: true
-      register: stop_result
-      ignore_errors: true
-
-    - name: Show stop result
-      debug:
-        msg: "Stop result: {{ stop_result.stdout }}"
-
-    - name: Check service status after stop
-      command: systemctl status {{ service_name }}
-      become: true
-      register: status_result
-      ignore_errors: true
-
-    - name: Show final status
-      debug:
-        msg: "Final status: {{ status_result.stdout }}"
+   ---
+   - name: Stop services on Ubuntu
+     hosts: all_servers
+     gather_facts: true
+     become: true
+     become_method: sudo
+     become_user: daniv
+     environment:
+       ANSIBLE_BECOME_PASSWORD: "{{ ansible_become_password }}"
+     tasks:
+       - name: Stop service using systemctl command
+         command: systemctl stop {{ service_name }}
+         become: true
+         register: stop_result
+         ignore_errors: true

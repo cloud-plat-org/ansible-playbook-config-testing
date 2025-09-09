@@ -2,13 +2,24 @@
 
 *(If not already created, otherwise skip to step 2)*
 
-```bash
 awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" credential create \
-  --name "WSL SSH" \
-  --description "SSH login for WSL hosts" \
-  --credential_type "Machine" \
-  --organization Default \
-  --inputs '{"username": "daniv", "password": "<YOUR_PASSWORD>"}'
+  --name "WSL SSH" \
+  --description "SSH login for WSL hosts" \
+  --credential_type "Machine" \
+  --organization Default \
+  --inputs '{"username": "daniv", "password": "<YOUR_PASSWORD>","become_password": "<YOUR_PASSWORD>"}'
+
+# update credentials:
+CRED_ID=$(awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" credential list --name "WSL SSH" | jq -r '.results[0].id')
+
+<!-- awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" credential modify $CRED_ID \
+  --inputs '{"username": "daniv", "password": "<YOUR_PASSWORD>","become_password": "<YOUR_PASSWORD>"}' -->
+
+awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" credential modify "$CRED_ID" \
+  --inputs '{"username": "daniv", "ssh_key_data": "'"$(cat ~/.ssh/awx_wsl_key)"'"}'
+
+awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" job_template get "$JOB_TEMPLATE_ID" | jq 'keys' | grep -E "(env|environment|extra_vars)"
+
 ```
 
 - (Omit or adjust `"password": ...` if using SSH key-based auth.)

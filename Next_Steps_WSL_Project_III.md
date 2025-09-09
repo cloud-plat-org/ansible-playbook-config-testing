@@ -114,8 +114,36 @@ awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" project_update st
 
 
 #TESTING: {See TroubleShooting_Password_AWX.md}
+   # Check current job template settings
+   awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" job_template get 9 | jq '{ask_credential_on_launch, ask_variables_on_launch}'
+   # Set the job template to use stored credentials (not ask on launch)
+   awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" job_template modify 9 --ask_credential_on_launch false
 
 
+awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" job_template get "$JOB_TEMPLATE_ID" | jq 'keys' | grep -E "(env|environment|extra_vars|become)"
+awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" job_template modify "$JOB_TEMPLATE_ID" --become_enabled true
+awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" job_template get "$JOB_TEMPLATE_ID" | jq '{become_enabled, ask_credential_on_launch}'
+
+
+
+
+# Disassociate the old credential (ID 3)
+awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" job_template disassociate --credential "3" "$JOB_TEMPLATE_ID"
+
+# Associate the new SSH key credential (ID 4)
+awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" job_template associate --credential "4" "$JOB_TEMPLATE_ID"
+
+# Verify the credential is now the SSH key credential
+awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" job_template get "$JOB_TEMPLATE_ID" | jq '.summary_fields.credentials'
+
+# Launch a new job with the SSH key credential
+JOB_ID=$(awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" job_template launch \
+  --job_template "Stop Services WSL" --extra_vars '{"service_name": "ssh"}' | jq -r .id)
+
+echo "New Job ID: $JOB_ID"
+
+# Check the job output
+awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" job stdout "$JOB_ID"
 
 
 ### THIS IS TO KICK OFF PLAYBOOKS  ###
@@ -202,13 +230,14 @@ awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" credential get "$
 
 
 
+awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" credential modify "$CRED_ID" \
+  --inputs '{"username": "daniv", "ssh_key_data": "'"$(cat ~/.ssh/awx_wsl_key)"'"}'
 
-
-awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" credential modify "$CRED_ID" --inputs '{
-  "username": "daniv", 
-  "password": "your_password", 
-  "become_password": "your_password"
-}'
+# awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" credential modify "$CRED_ID" --inputs '{
+#   "username": "daniv", 
+#   "password": "your_password", 
+#   "become_password": "your_password"
+# }'
 
 awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" credential get "$CRED_ID" | jq '.inputs'
 
