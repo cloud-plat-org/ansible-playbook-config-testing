@@ -3,7 +3,6 @@
   hosts: all
   become: true
   become_method: sudo
-  become_user: daniv
   tasks:
     - name: Debug - Show basic info
       debug:

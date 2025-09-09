@@ -11,7 +11,8 @@ sudo apt install python3-venv
 python3 -m venv ~/.venvs/ansible
 
 # 3. Activate and install ansible-lint
-source ~/.venvs/ansible/bin/activate
+## no source ~/.venvs/ansible/bin/activate
+source ~/awx-venv/bin/activate
 pip install ansible-lint
 
 # To activate it on new sesstion of code editors:

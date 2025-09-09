@@ -167,9 +167,19 @@ python3 -m pip install --upgrade pip
 sudo apt install python3 python3-pip
 pip install awxkit
 awx --version
+export AWX_PASSWORD='PASSWORD LASTPASS'
+echo "$AWX_PASSWORD"
 AWX_TOKEN=$(awx --conf.host https://localhost:443 -k login --conf.username admin --conf.password "$AWX_PASSWORD" | jq -r .token)
 awx --conf.host https://localhost:443 -k --conf.token "$AWX_TOKEN" host list
 
+
+# Get the token from AWX (you'll need to run this first)
+export AWX_TOKEN=$(kubectl get secret awx-admin-password -n awx -o jsonpath='{.data.password}' | base64 -d)
+# Add this line to your ~/.bashrc
+echo 'export AWX_TOKEN=$(kubectl get secret awx-admin-password -n awx -o jsonpath="{.data.password}" | base64 -d)' >> ~/.bashrc
+
+# Then reload your bashrc
+source ~/.bashrc
 ```
 
 
