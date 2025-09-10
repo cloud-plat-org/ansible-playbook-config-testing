@@ -1,0 +1,4 @@
+---
+- name: display_report
+  debug:
+    msg: "System report has been updated!"

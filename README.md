@@ -20,3 +20,44 @@ ansible-lint your_playbook.yml
 # add to vim ~/.bashrc
 export ANSIBLE_CACHE_PLUGIN_CONNECTION=$(pwd)/.ansible
 
+######################################################################
+
+bash```
+cd ~/ansible/test2
+
+# Create inventory file
+cat > inventory.ini << 'EOF'
+[wsl_hosts]
+wslubuntu1 ansible_host=172.22.192.129 ansible_port=2223 ansible_user=daniv
+wslkali1 ansible_host=172.22.192.129 ansible_port=2224 ansible_user=daniv
+
+[local]
+localhost ansible_connection=local
+EOF
+
+# Create role structure
+ansible-galaxy init roles/system_info
+
+# Create test playbook
+cat > test_system_info.yml << 'EOF'
+---
+- name: Test system_info role
+  hosts: wsl_hosts
+  become: false
+  roles:
+    - system_info
+  vars:
+    report_title: "WSL System Information Report"
+    include_network_details: true
+    include_disk_details: true
+    include_memory_details: true
+EOF
+
+# Optional: Create requirements file
+cat > requirements.yml << 'EOF'
+# External roles from Ansible Galaxy can be listed here
+# Local roles in roles/ directory are automatically available
+EOF
+
+
+```

@@ -1,0 +1,34 @@
+---
+- name: Gather system facts
+  setup:
+    gather_subset:
+      - hardware
+      - network
+      - virtual
+      - system
+
+- name: Get memory information
+  shell: free -h
+  register: memory_info
+  changed_when: false
+
+- name: Get disk usage
+  shell: df -h /
+  register: disk_info
+  changed_when: false
+
+- name: Get network interfaces
+  shell: ip addr show
+  register: network_info
+  changed_when: false
+
+- name: Create system report
+  template:
+    src: system_report.j2
+    dest: /tmp/system_report_{{ ansible_hostname }}.txt
+    mode: '0644'
+  notify: display_report
+
+- name: Display system summary
+  debug:
+    msg: "System report created at /tmp/system_report_{{ ansible_hostname }}.txt"

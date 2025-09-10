@@ -1,0 +1,11 @@
+---
+- name: Test system_info role
+  hosts: wsl_hosts
+  become: false
+  roles:
+    - system_info
+  vars:
+    report_title: "WSL System Information Report"
+    include_network_details: true
+    include_disk_details: true
+    include_memory_details: true

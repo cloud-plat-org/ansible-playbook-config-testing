@@ -1,0 +1,6 @@
+---
+# Default variables for system_info role
+report_title: "System Information Report"
+include_network_details: true
+include_disk_details: true
+include_memory_details: true

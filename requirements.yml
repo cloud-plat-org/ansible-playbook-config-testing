@@ -1,0 +1,6 @@
+# External roles (if you want to use any from Ansible Galaxy)
+# Example:
+# - name: geerlingguy.docker
+#   version: 4.0.0
+
+# Local roles are automatically included when in the roles/ directory
