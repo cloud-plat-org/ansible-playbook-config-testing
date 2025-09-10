@@ -125,6 +125,34 @@ awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" job_template modi
 awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" job_template get "$JOB_TEMPLATE_ID" | jq '{become_enabled, ask_credential_on_launch}'
 
 
+awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" host list | jq '.results[] | {name: .name, variables: .variables}'
+# UbuntuAWX variables only
+awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" host get --name UbuntuAWX | jq '.variables'
+
+# wslubuntu1 variables only  
+awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" host get --name wslubuntu1 | jq '.variables'
+
+# wslkali1 variables only
+awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" host get --name wslkali1 | jq '.variables'
+awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" host list | jq -r '.results[] | "\(.name): \(.variables)"'
+
+awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" host modify 4 --variables '{"ansible_host": "localhost", "ansible_port": 22, "ansible_user": "daniv", "ansible_password": "<yourpassword>"}'  ## Not needed
+# Config ansible_host and ansible_user without password, gotten from credentials.
+awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" host modify 4 --variables '{"ansible_host": "localhost", "ansible_port": 22, "ansible_user": "daniv"}'
+
+awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" host delete 4[]
+awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" host list | jq '.results[] | {name: .name, variables: .variables}'
+awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" hosts delete 4
+
+
+
+
+
+
+
+
+
+
 
 
 # Disassociate the old credential (ID 3)
