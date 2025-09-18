@@ -181,7 +181,7 @@ wsl -d kali-linux
 sudo vim /etc/ssh/sshd_config
 # Add or modify: ListenAddress 0.0.0.0
 # Add or modify: Port 2224
-
+sudo visudo daniv ALL=(ALL) NOPASSWD: ALL
 # Add hostname resolution
 echo "127.0.1.1 wslkali1" | sudo tee -a /etc/hosts
 
