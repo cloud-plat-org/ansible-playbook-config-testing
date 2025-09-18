@@ -1,5 +1,3 @@
-<img src="https://r2cdn.perplexity.ai/pplx-full-logo-primary-dark%402x.png" style="height:64px;margin-right:32px"/>
-
 # \#\# 1. **Start Docker Desktop in Windows**
 
 From your WSL terminal:
@@ -38,73 +36,8 @@ This ensures services with LoadBalancer/Ingress work at `https://localhost`.
 Open a separate WSL terminal (not your code editor):
 
 ```bash
-minikube tunnel
+minikube tunnel  # maybe?
 ```
-
-- Keep this terminal **open** and running.
-
-***
-
-## 4. **Check AWX Pods and Services**
-
-Make sure AWX is deployed and all pods are running:
-
-```bash
-kubectl get pods -n awx
-kubectl get svc -n awx
-```
-
-- Pods like `awx-web`, `awx-task`, and `awx-postgres` should show `Running` or `Completed`.
-
-***
-
-## 5. **Set Up Port Forwarding (if Required)**
-
-If you’re not using Ingress or want direct access to a specific port:
-
-```bash
-sudo kubectl port-forward svc/awx-service -n awx 443:80
-
-
-```
-
-*(If using Ingress and minikube tunnel, this step may be optional—AWX UI should be at https://localhost.)*
-
-***
-
-## 6. **Access the AWX Web UI**
-
-- In your browser (on Windows), go to:
-
-```
-https://localhost
-```
-
-Accept any certificate warnings (self-signed cert).
-
-***
-
-## 7. **Run the AWX CLI Login Command in WSL**
-
-Use your configured HTTPS endpoint and the insecure flag for self-signed certs:
-
-```bash
-awx --conf.host https://localhost:443 -k login --conf.username admin --conf.password <yourpassword>
-```
-
-- To re-use the token:
-
-```bash
-export AWX_TOKEN=$(awx --conf.host https://localhost:443 -k login --conf.username admin --conf.password <yourpassword> | jq -r .token)
-```
-
-- Example to list hosts:
-
-```bash
-awx --conf.host https://localhost:443 -k --conf.token "$AWX_TOKEN" host list
-```Here are the steps I used for AWX.  Can you give me a list of steps for argo cd the will work with this?
-
-Below is a curated set of step-by-step instructions to run and access Argo CD alongside your AWX setup on Docker Desktop/Minikube/WSL Ubuntu, matching the format and compatibility with your AWX workflow.
 
 ***
 
@@ -191,7 +124,7 @@ sudo mv argocd /usr/local/bin/
 ## 7. **Login Using the CLI**
 
 ```bash
-argocd login localhost:8080 --username admin --password <password-from-step-5> --insecure
+argocd login localhost:8080 --username admin --password Thisisit! --insecure
 ```
 
 - Use `--insecure` due to self-signed certs.
@@ -207,22 +140,6 @@ argocd login localhost:8080 --username admin --password <password-from-step-5> -
 
 ### **Notes**
 
-- You can run port-forward for both AWX and Argo CD at the same time, each in a different terminal, with **different local ports**.[^2][^3][^4]
+- You can run port-forward for both AWX and Argo CD at the same time, each in a different terminal, with **different local ports**.
 - If you use Minikube Ingress and `minikube tunnel`, you can skip port-forwarding for production-like URLs, but port-forwarding is quick for local testing.
 - No need to use `sudo` with Argo CD port-forward unless your Linux setup requires it for binding local ports below 1024.
-
-***
-
-**Summary:**
-Follow the steps above to install, verify, access, and use Argo CD in a workflow directly compatible with your existing AWX developer environment. This minimizes conflicts and maximizes convenience for Kubernetes GitOps and automation trials.[^3][^4][^1][^2]
-
-<div style="text-align: center">⁂</div>
-
-[^1]: https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
-
-[^2]: https://stackoverflow.com/questions/72980275/kubectl-port-forward-multiple-services
-
-[^3]: https://www.plural.sh/blog/kubernetes-port-forward-guide/
-
-[^4]: https://stackoverflow.com/questions/70727355/why-am-i-not-able-to-create-an-app-or-port-forward-in-argocd
-
