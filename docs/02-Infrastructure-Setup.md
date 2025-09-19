@@ -123,14 +123,6 @@ sudo apt install -y python3-dev python3-pip python3-venv
 # Create virtual environment for AWX CLI
 python3 -m venv ~/awx-venv
 
-# Activate virtual environment
-source ~/awx-venv/bin/activate
-
-# Verify Python environment
-python --version
-pip --version
-```
-
 ### 3. Install AWX CLI
 ```bash
 # Ensure virtual environment is activated

@@ -14,14 +14,13 @@ This document covers daily startup workflows, automation scripts, maintenance pr
 sleep 30
 docker ps
 
-# 3. Start Minikube\
+# 3. Start Minikube
 minikube status
 minikube start
 minikube tunnel &  # In separate terminal
 
 # 4. Check AWX status
-minikube start
-minikube tunnel 
+minikube status 
 
 # 5. Set up port forwarding (if needed)
 kubectl port-forward svc/awx-service -n awx 443:80

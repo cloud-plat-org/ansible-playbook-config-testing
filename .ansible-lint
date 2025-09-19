@@ -1,0 +1,15 @@
+# Ansible Lint Configuration for CI/CD
+skip_list:
+  - yaml[line-length]  # Allow longer lines for readability
+  - name[casing]      # Allow different naming conventions
+  - risky-file-permissions  # Allow specific file permissions
+
+exclude_paths:
+  - .cache/
+  - .github/
+  - .git/
+  - .tox/
+  - .venv/
+  - venv/
+
+verbosity: 1
