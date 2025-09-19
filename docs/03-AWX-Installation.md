@@ -109,9 +109,8 @@ kind: Ingress
 metadata:
   name: awx-ingress
   namespace: awx
-  annotations:
-    nginx.ingress.kubernetes.io/backend-protocol: "HTTP"
 spec:
+  ingressClassName: nginx
   tls:
   - hosts:
     - localhost

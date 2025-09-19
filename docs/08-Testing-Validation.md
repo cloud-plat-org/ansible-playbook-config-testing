@@ -52,13 +52,34 @@ JOB_ID=$(awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" job_temp
 echo "Job ID: $JOB_ID"
 ```
 
-### 2. Monitor Job Execution
+### 2. Launch Job Without Extra Variables
+```bash
+# Launch job without extra variables (uses default service_name)
+JOB_ID=$(awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" job_template launch \
+  --job_template "Stop Services WSL" | jq -r .id)
+
+echo "Job ID: $JOB_ID"
+```
+
+### 3. Launch Job with Different Service
+```bash
+# Launch job with different service
+JOB_ID=$(awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" job_template launch \
+  --job_template "Stop Services WSL" --extra_vars '{"service_name": "cron"}' | jq -r .id)
+
+echo "Job ID: $JOB_ID"
+```
+
+### 4. Monitor Job Execution
 ```bash
 # Monitor job status
 awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" job get "$JOB_ID" | jq '{id, status, started, finished}'
 
 # Get job output
 awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" job stdout "$JOB_ID"
+
+# List all jobs
+awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" job list
 ```
 
 ### 3. Test Different Services

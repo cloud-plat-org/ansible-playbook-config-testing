@@ -162,8 +162,17 @@ echo "Job Template ID: $JOB_TEMPLATE_ID"
 
 ### 2. Associate SSH Key Credential
 ```bash
-# Associate SSH key credential with job template
+# Method 1: Associate credential using credential ID
 awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" job_template associate --credential "$CRED_ID" "$JOB_TEMPLATE_ID"
+
+# Method 2: Associate credential using credential name (alternative approach)
+awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" job_template create \
+  --name "Stop Services WSL" \
+  --project "WSL Project" \
+  --inventory "WSL Lab" \
+  --playbook "stop_services.yml" \
+  --credential "WSL SSH Key" \
+  --become_enabled true
 
 # Verify credential association
 awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" job_template get "$JOB_TEMPLATE_ID" | jq '.summary_fields.credentials'
@@ -183,6 +192,69 @@ awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" job_template get 
 #   "become_enabled": true,
 #   "ask_credential_on_launch": false
 # }
+```
+
+## Project Management
+
+### 1. Check Project Status
+```bash
+# List all projects
+awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" project list
+
+# Check project status with detailed information
+awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" project list | \
+jq -r '.results[] | {name, status, last_job_run, last_job_failed}'
+
+# Check project status in tabular format
+awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" project list | \
+jq -r '.results[] | [.name, .status, .last_job_run, .last_job_failed] | @tsv'
+```
+
+### 2. Job Template Management
+```bash
+# List job templates
+awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" job_template list
+
+# Get job template details
+awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" job_template get "$JOB_TEMPLATE_ID"
+
+# Check job template credentials
+awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" job_template get "$JOB_TEMPLATE_ID" | jq '.summary_fields.credentials'
+```
+
+## Job Execution
+
+### 1. Launch Job with Extra Variables
+```bash
+# Launch job with service name variable
+JOB_ID=$(awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" job_template launch \
+  --job_template "Stop Services WSL" \
+  --extra_vars '{"service_name": "ssh"}' | jq -r .id)
+
+echo "Job ID: $JOB_ID"
+```
+
+### 2. Monitor Job Execution
+```bash
+# Check job status
+awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" job get "$JOB_ID" | jq '{id, status, started, finished}'
+
+# Get job output
+awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" job stdout "$JOB_ID"
+
+# List all jobs
+awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" job list
+```
+
+### 3. AWX Version Considerations
+```bash
+# Check AWX version
+awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" me | jq '.version'
+
+# Note: AWX CLI limitations in version 24.6.1
+# - No direct group associate command
+# - Use API calls for host-group management
+# - Web UI recommended for complex group operations
 ```
 
 ## Configuration Verification
