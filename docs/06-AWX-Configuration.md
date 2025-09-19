@@ -351,6 +351,146 @@ awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" job_template modi
   --timeout 1800
 ```
 
+## Advanced AWX CLI Commands
+
+### 1. Project Management
+```bash
+# Check project sync status and revision
+awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" project list | jq '.results[] | {name, id, last_job_run, last_job_failed, status}'
+
+# Get specific project details
+awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" project list | jq '.results[] | select(.name == "WSL Project")'
+
+# Capture project ID
+PROJECT_ID=$(awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" project list | jq -r '.results[] | select(.name == "WSL Project") | .id')
+echo "WSL Project ID: $PROJECT_ID"
+
+# Compare project revision with Git
+awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" project get "$PROJECT_ID" | jq '.scm_revision'
+git log -1 --format="%H"
+
+# Check project branch and URL
+awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" project get "$PROJECT_ID" | jq '{scm_branch, scm_url}'
+
+# Change project branch
+awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" project modify "$PROJECT_ID" --scm_branch "main"
+
+# Enable automatic sync on launch
+awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" project modify "$PROJECT_ID" --scm_update_on_launch true
+
+# Check project local path
+awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" project get "$PROJECT_ID" | jq '.local_path'
+```
+
+### 2. Project Update Monitoring
+```bash
+# Check project update progress
+awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" project_update get 21 | jq '{status, started, finished, elapsed}'
+
+# Monitor project update output
+awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" project_update stdout 21
+
+# Get latest project revision after update
+awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" project get "$PROJECT_ID" | jq '.scm_revision'
+```
+
+### 3. Advanced Credential Management
+```bash
+# Check credential inputs (for troubleshooting)
+awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" credential get "$CRED_ID" | jq '.inputs'
+
+# Update credential with SSH key (proper formatting)
+awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" credential modify "$CRED_ID" \
+  --inputs "{\"username\": \"daniv\", \"ssh_key_data\": \"$(awk 'NF{printf \"%s\\n\",$0;}' ~/.ssh/awx_wsl_key_traditional)\"}"
+
+# Disassociate old credential and associate new one
+awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" job_template disassociate --credential "3" "$JOB_TEMPLATE_ID"
+awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" job_template associate --credential "4" "$JOB_TEMPLATE_ID"
+
+# Verify credential association
+awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" job_template get "$JOB_TEMPLATE_ID" | jq '.summary_fields.credentials'
+```
+
+### 4. Advanced Host Management
+```bash
+# List all hosts with variables
+awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" host list | jq '.results[] | {name: .name, variables: .variables}'
+
+# Get specific host variables
+awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" host get --name wslubuntu1 | jq '.variables'
+awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" host get --name wslkali1 | jq '.variables'
+
+# Update host variables (clean format)
+awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" host modify "$HOST_ID" --variables '{"ansible_host": "172.22.192.129", "ansible_port": 2223}'
+
+# Delete host (if needed)
+awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" host delete "$HOST_ID"
+```
+
+### 5. Job Template Advanced Settings
+```bash
+# Check job template settings
+awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" job_template get "$JOB_TEMPLATE_ID" | jq '{ask_credential_on_launch, ask_variables_on_launch, become_enabled}'
+
+# Set job template to use stored credentials
+awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" job_template modify "$JOB_TEMPLATE_ID" --ask_credential_on_launch false
+
+# Enable privilege escalation
+awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" job_template modify "$JOB_TEMPLATE_ID" --become_enabled true
+
+# Verify job template settings
+awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" job_template get "$JOB_TEMPLATE_ID" | jq '{become_enabled, ask_credential_on_launch}'
+```
+
+### 6. Job Environment and Arguments
+```bash
+# Check job environment variables
+awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" job get "$JOB_ID" | jq '.job_env'
+
+# Check for password in job environment
+awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" job get "$JOB_ID" | jq '.job_env' | grep -i password
+
+# Check job arguments
+awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" job get "$JOB_ID" | jq '.job_args'
+
+# Verify credential in job
+awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" job get "$JOB_ID" | jq '.summary_fields.credentials'
+
+# Check job working directory
+awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" job get "$JOB_ID" | jq '.job_cwd'
+```
+
+### 7. SSH Key Troubleshooting
+```bash
+# Test SSH connectivity from AWX pod
+kubectl get pods -n awx | grep awx-task
+kubectl exec -n awx -it awx-task-7b9c887444-jb9vd -- ssh -p 2223 daniv@172.22.192.129
+kubectl exec -n awx -it awx-task-7b9c887444-jb9vd -- ssh -p 2224 daniv@172.22.192.129
+
+# Test SSH from local machine
+ssh -p 2223 daniv@172.22.192.129
+ssh -p 2224 daniv@172.22.192.129
+
+# Add host keys to known_hosts
+ssh-keyscan -p 2223 localhost >> ~/.ssh/known_hosts
+ssh-keyscan -p 2224 localhost >> ~/.ssh/known_hosts
+```
+
+### 8. WSL Service Management
+```bash
+# Start WSL distributions
+wsl --distribution Ubuntu-24.04 --user daniv
+wsl --distribution Kali-Linux --user daniv
+
+# Check SSH service status
+sudo systemctl status ssh
+sudo systemctl start ssh
+sudo systemctl restart ssh
+
+# Configure passwordless sudo
+echo "daniv ALL=(ALL) NOPASSWD: ALL" | sudo tee /etc/sudoers.d/daniv
+```
+
 ## Next Steps
 
 Once AWX configuration is complete, proceed to:

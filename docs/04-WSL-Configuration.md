@@ -35,6 +35,8 @@ hostname
 ```
 
 ### 4. Configure Passwordless Sudo
+
+#### Option 1: Full Passwordless Sudo (Recommended for Development)
 ```bash
 # Create sudoers file for daniv user
 echo "daniv ALL=(ALL) NOPASSWD: ALL" | sudo tee /etc/sudoers.d/daniv-nopasswd
@@ -46,6 +48,22 @@ sudo cat /etc/sudoers.d/daniv-nopasswd
 sudo whoami
 # Should return: root
 ```
+
+#### Option 2: Granular systemctl Permissions (More Secure)
+```bash
+# Create sudoers file with specific systemctl permissions
+echo "daniv ALL=(ALL) NOPASSWD: /bin/systemctl stop *, /bin/systemctl start *, /bin/systemctl restart *, /bin/systemctl status *" | sudo tee /etc/sudoers.d/daniv-systemctl
+
+# Verify sudoers file
+sudo cat /etc/sudoers.d/daniv-systemctl
+
+# Test systemctl operations
+sudo systemctl stop ssh
+sudo systemctl start ssh
+sudo systemctl status ssh
+```
+
+**Note:** Option 1 is recommended for development environments. Option 2 provides more security by limiting sudo access to specific systemctl operations only.
 
 ### 5. Start and Enable SSH Service
 ```bash
@@ -99,6 +117,8 @@ hostname
 ```
 
 ### 4. Configure Passwordless Sudo
+
+#### Option 1: Full Passwordless Sudo (Recommended for Development)
 ```bash
 # Create sudoers file for daniv user
 echo "daniv ALL=(ALL) NOPASSWD: ALL" | sudo tee /etc/sudoers.d/daniv-nopasswd
@@ -110,6 +130,22 @@ sudo cat /etc/sudoers.d/daniv-nopasswd
 sudo whoami
 # Should return: root
 ```
+
+#### Option 2: Granular systemctl Permissions (More Secure)
+```bash
+# Create sudoers file with specific systemctl permissions
+echo "daniv ALL=(ALL) NOPASSWD: /bin/systemctl stop *, /bin/systemctl start *, /bin/systemctl restart *, /bin/systemctl status *" | sudo tee /etc/sudoers.d/daniv-systemctl
+
+# Verify sudoers file
+sudo cat /etc/sudoers.d/daniv-systemctl
+
+# Test systemctl operations
+sudo systemctl stop ssh
+sudo systemctl start ssh
+sudo systemctl status ssh
+```
+
+**Note:** Option 1 is recommended for development environments. Option 2 provides more security by limiting sudo access to specific systemctl operations only.
 
 ### 5. Start and Enable SSH Service
 ```bash

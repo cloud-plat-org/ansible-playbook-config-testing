@@ -384,6 +384,51 @@ awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" job stdout "$JOB_
 ssh -i ~/.ssh/awx_wsl_key_traditional -p 2223 daniv@172.22.192.129 "sudo systemctl start ssh"
 ```
 
+## Advanced Job Monitoring
+
+### 1. Job Environment Debugging
+```bash
+# Check job environment variables
+awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" job get "$JOB_ID" | jq '.job_env'
+
+# Check for password in job environment
+awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" job get "$JOB_ID" | jq '.job_env' | grep -i password
+
+# Check job arguments
+awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" job get "$JOB_ID" | jq '.job_args'
+
+# Verify credential in job
+awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" job get "$JOB_ID" | jq '.summary_fields.credentials'
+
+# Check job working directory
+awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" job get "$JOB_ID" | jq '.job_cwd'
+```
+
+### 2. Project Sync Verification
+```bash
+# Check project sync status and revision
+awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" project list | jq '.results[] | {name, id, last_job_run, last_job_failed, status}'
+
+# Compare project revision with Git
+awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" project get "$PROJECT_ID" | jq '.scm_revision'
+git log -1 --format="%H"
+
+# Check project update progress
+awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" project_update get 21 | jq '{status, started, finished, elapsed}'
+
+# Monitor project update output
+awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" project_update stdout 21
+```
+
+### 3. Job Template Verification
+```bash
+# Check job template settings
+awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" job_template get "$JOB_TEMPLATE_ID" | jq '{ask_credential_on_launch, ask_variables_on_launch, become_enabled}'
+
+# Verify credential association
+awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" job_template get "$JOB_TEMPLATE_ID" | jq '.summary_fields.credentials'
+```
+
 ## Next Steps
 
 Once testing is complete and all validations pass, proceed to:

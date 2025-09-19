@@ -428,6 +428,186 @@ awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" me
 awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" job_template list
 ```
 
+## Password Authentication Troubleshooting (Legacy)
+
+### 1. Job Environment Analysis
+```bash
+# Check job environment variables for passwords
+awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" job get "$JOB_ID" | jq '.job_env' | grep -i password
+
+# Check job arguments to see authentication method
+awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" job get "$JOB_ID" | jq '.job_args'
+
+# Check what variables AWX is providing
+awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" job get "$JOB_ID" | jq '.job_env' | grep -E "(ANSIBLE|SSH|PASSWORD)"
+```
+
+### 2. Credential Input Verification
+```bash
+# Check credential inputs (for troubleshooting)
+awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" credential get "$CRED_ID" | jq '.inputs'
+
+# Example output for password-based credential:
+# {
+#   "password": "$encrypted$",
+#   "username": "daniv",
+#   "become_password": "$encrypted$"
+# }
+```
+
+### 3. Common Password Authentication Issues
+```bash
+# Issue: AWX using interactive prompts
+# Job arguments show: --ask-pass and --ask-become-pass
+# Solution: Use SSH key authentication instead
+
+# Issue: Password not being set as environment variable
+# Solution: Configure AWX to pass credential password as variable
+# Better Solution: Use SSH key authentication (current setup)
+```
+
+**Note:** This section is for reference only. Your current setup uses SSH key authentication, which is more secure and eliminates password prompts.
+
+## systemctl Authentication Issues
+
+### 1. Interactive Authentication Problem
+```bash
+# Issue: systemctl operations require interactive authentication
+# Symptoms:
+# - systemctl status ssh works (read-only)
+# - systemctl stop ssh fails (requires interactive input)
+# - This is a systemd security feature
+
+# Check if this is the issue
+sudo systemctl stop ssh
+# If it prompts for password, you have this issue
+```
+
+### 2. Solution: Granular systemctl Permissions
+```bash
+# Create sudoers file with specific systemctl permissions
+echo "daniv ALL=(ALL) NOPASSWD: /bin/systemctl stop *, /bin/systemctl start *, /bin/systemctl restart *, /bin/systemctl status *" | sudo tee /etc/sudoers.d/daniv-systemctl
+
+# Verify sudoers file
+sudo cat /etc/sudoers.d/daniv-systemctl
+
+# Test systemctl operations
+sudo systemctl stop ssh
+sudo systemctl start ssh
+sudo systemctl status ssh
+```
+
+### 3. Alternative: Full Passwordless Sudo
+```bash
+# If granular permissions don't work, use full passwordless sudo
+echo "daniv ALL=(ALL) NOPASSWD: ALL" | sudo tee /etc/sudoers.d/daniv-nopasswd
+
+# Test
+sudo whoami
+# Should return: root
+```
+
+## SSH Key Troubleshooting
+
+### 1. Key Format Issues
+```bash
+# Common Causes and Solutions
+# 1. Key Format
+# Ansible's paramiko and OpenSSH typically want a PEM-format private key (header: -----BEGIN RSA PRIVATE KEY----- and footer: -----END RSA PRIVATE KEY-----).
+
+# Your command with -m PEM is correct for legacy format.
+# But later Python/cryptography libraries might reject some older, passwordless PEM keys (test with a passphrase if issues persist).
+
+# 2. Proper Key Upload (No Corrupted Newlines/Escape)
+# When uploading a key via CLI, careful quoting is required—especially so newlines in your PEM key remain intact.
+
+# Direct $(cat ...) in JSON can convert linebreaks to spaces, corrupting the key.
+
+# Update credential with the working traditional RSA key
+awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" credential modify "$CRED_ID" \
+  --inputs "{\"username\": \"daniv\", \"ssh_key_data\": \"$(awk 'NF{printf \"%s\\n\",$0;}' ~/.ssh/awx_wsl_key_traditional)\"}"
+```
+
+### 2. SSH Connectivity Testing
+```bash
+# Test SSH connectivity from AWX pod
+kubectl get pods -n awx | grep awx-task
+kubectl exec -n awx -it awx-task-7b9c887444-jb9vd -- ssh -p 2223 daniv@172.22.192.129
+kubectl exec -n awx -it awx-task-7b9c887444-jb9vd -- ssh -p 2224 daniv@172.22.192.129
+
+# Test SSH from local machine
+ssh -p 2223 daniv@172.22.192.129
+ssh -p 2224 daniv@172.22.192.129
+
+# Add host keys to known_hosts
+ssh-keyscan -p 2223 localhost >> ~/.ssh/known_hosts
+ssh-keyscan -p 2224 localhost >> ~/.ssh/known_hosts
+```
+
+### 3. WSL Service Management
+```bash
+# Start WSL distributions
+wsl --distribution Ubuntu-24.04 --user daniv
+wsl --distribution Kali-Linux --user daniv
+
+# Check SSH service status
+sudo systemctl status ssh
+sudo systemctl start ssh
+sudo systemctl restart ssh
+
+# Configure passwordless sudo
+echo "daniv ALL=(ALL) NOPASSWD: ALL" | sudo tee /etc/sudoers.d/daniv
+```
+
+## Advanced Troubleshooting Commands
+
+### 1. Job Environment Debugging
+```bash
+# Check job environment variables
+awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" job get "$JOB_ID" | jq '.job_env'
+
+# Check for password in job environment
+awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" job get "$JOB_ID" | jq '.job_env' | grep -i password
+
+# Check job arguments
+awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" job get "$JOB_ID" | jq '.job_args'
+
+# Verify credential in job
+awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" job get "$JOB_ID" | jq '.summary_fields.credentials'
+
+# Check job working directory
+awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" job get "$JOB_ID" | jq '.job_cwd'
+```
+
+### 2. Project Sync Troubleshooting
+```bash
+# Check project sync status and revision
+awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" project list | jq '.results[] | {name, id, last_job_run, last_job_failed, status}'
+
+# Compare project revision with Git
+awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" project get "$PROJECT_ID" | jq '.scm_revision'
+git log -1 --format="%H"
+
+# Check project update progress
+awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" project_update get 21 | jq '{status, started, finished, elapsed}'
+
+# Monitor project update output
+awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" project_update stdout 21
+```
+
+### 3. Credential Troubleshooting
+```bash
+# Check credential inputs (for troubleshooting)
+awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" credential get "$CRED_ID" | jq '.inputs'
+
+# Disassociate old credential and associate new one
+awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" job_template disassociate --credential "3" "$JOB_TEMPLATE_ID"
+awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" job_template associate --credential "4" "$JOB_TEMPLATE_ID"
+
+# Verify credential association
+awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" job_template get "$JOB_TEMPLATE_ID" | jq '.summary_fields.credentials'
+```
+
 ## Key Success Factors
 
 ### 1. SSH Key Authentication
