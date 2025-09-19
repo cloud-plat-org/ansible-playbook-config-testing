@@ -14,19 +14,22 @@ This document covers daily startup workflows, automation scripts, maintenance pr
 sleep 30
 docker ps
 
-# 3. Start Minikube
+# 3. Start Minikube\
+minikube status
 minikube start
 minikube tunnel &  # In separate terminal
 
 # 4. Check AWX status
-kubectl get pods -n awx
-kubectl get svc -n awx
+minikube start
+minikube tunnel 
 
 # 5. Set up port forwarding (if needed)
 kubectl port-forward svc/awx-service -n awx 443:80
 
 # 6. Activate AWX environment
 source ~/awx-venv/bin/activate
+
+# Extract stored OAuth2 token (no regeneration needed - valid for ~1 year)
 export AWX_TOKEN=$(kubectl get secret awx-admin-password -n awx -o jsonpath='{.data.password}' | base64 -d)
 
 # 7. Test AWX access

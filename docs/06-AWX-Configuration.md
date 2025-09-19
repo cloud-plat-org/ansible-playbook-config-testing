@@ -10,7 +10,7 @@ This document covers AWX project creation, inventory setup, host configuration, 
 # Activate AWX virtual environment
 source ~/awx-venv/bin/activate
 
-# Set AWX token
+# Extract stored OAuth2 token (no regeneration needed - valid for ~1 year)
 export AWX_TOKEN=$(kubectl get secret awx-admin-password -n awx -o jsonpath='{.data.password}' | base64 -d)
 
 # Verify AWX CLI access

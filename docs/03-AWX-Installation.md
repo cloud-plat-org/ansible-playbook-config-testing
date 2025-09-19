@@ -186,30 +186,27 @@ curl -k https://localhost
 
 ## Token Management
 
-### 1. Get Default Token
+### 1. One-Time Token Setup (Recommended)
 ```bash
-# Get token from kubectl secret (default password)
+# Generate OAuth2 token from password and store it (valid for ~1 year)
+AWX_TOKEN=$(awx --conf.host https://localhost -k --conf.username admin --conf.password "$AWX_PASSWORD" login -f json | jq -r .token)
+
+# Store token in kubectl secret for future use
+kubectl create secret generic awx-admin-password -n awx \
+  --from-literal=password="$AWX_TOKEN" \
+  --dry-run=client -o yaml | kubectl apply -f -
+
+# Extract token for all future AWX commands (no regeneration needed)
 export AWX_TOKEN=$(kubectl get secret awx-admin-password -n awx -o jsonpath='{.data.password}' | base64 -d)
 ```
 
-### 2. Update kubectl Secret with Custom Password
+### 2. Alternative: Use Username/Password Authentication
 ```bash
-# If you changed the AWX password in the Web UI, update the secret
-kubectl create secret generic awx-admin-password -n awx \
-  --from-literal=password="YOUR_CUSTOM_PASSWORD" \
-  --dry-run=client -o yaml | kubectl apply -f -
-
-# Verify the secret was updated
-kubectl get secret awx-admin-password -n awx -o jsonpath='{.data.password}' | base64 -d
-```
-
-### 3. Alternative: Use Username/Password Authentication
-```bash
-# Use username and password instead of token
+# Use username and password directly (generates new token each time)
 awx --conf.host https://localhost -k --conf.username admin --conf.password "YOUR_PASSWORD" me
 ```
 
-### 4. Alternative: Create Token in Web UI
+### 3. Alternative: Create Token in Web UI
 1. Access AWX Web UI: https://localhost
 2. Login with your credentials
 3. Go to User Menu → Tokens

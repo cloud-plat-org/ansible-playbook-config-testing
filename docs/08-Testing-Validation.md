@@ -43,6 +43,8 @@ ssh -i ~/.ssh/awx_wsl_key_traditional -p 2224 daniv@172.22.192.129 "echo 'Kali O
 ```bash
 # Activate AWX environment
 source ~/awx-venv/bin/activate
+
+# Extract stored OAuth2 token (no regeneration needed - valid for ~1 year)
 export AWX_TOKEN=$(kubectl get secret awx-admin-password -n awx -o jsonpath='{.data.password}' | base64 -d)
 
 # Launch AWX job
@@ -68,6 +70,9 @@ JOB_ID=$(awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" job_temp
   --job_template "Stop Services WSL" --extra_vars '{"service_name": "cron"}' | jq -r .id)
 
 echo "Job ID: $JOB_ID"
+
+# Job output 
+awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" job stdout "$JOB_ID"
 ```
 
 ### 4. Monitor Job Execution
@@ -89,7 +94,7 @@ JOB_ID2=$(awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" job_tem
   --job_template "Stop Services WSL" --extra_vars '{"service_name": "cron"}' | jq -r .id)
 
 # Monitor second job
-awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" job stdout "$JOB_ID2"
+awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" job stdout "$JOB_ID"
 ```
 
 ## Expected Successful Output

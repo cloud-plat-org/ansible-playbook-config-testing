@@ -509,7 +509,28 @@ sudo whoami
 
 ## Password and Token Issues
 
-### 1. kubectl Secret vs Custom Password
+### 1. Password vs OAuth2 Token (Simplified Workflow)
+```bash
+# Issue: Password and OAuth2 token are different things
+# Password: Used for Web UI login
+# OAuth2 Token: Used for API/CLI access (valid for ~1 year)
+
+# One-time setup: Generate token from password and store it
+AWX_TOKEN=$(awx --conf.host https://localhost -k --conf.username admin --conf.password "$AWX_PASSWORD" login -f json | jq -r .token)
+
+# Store token in kubectl secret for future use
+kubectl create secret generic awx-admin-password -n awx \
+  --from-literal=password="$AWX_TOKEN" \
+  --dry-run=client -o yaml | kubectl apply -f -
+
+# Extract token for all future AWX commands (no need to regenerate)
+export AWX_TOKEN=$(kubectl get secret awx-admin-password -n awx -o jsonpath='{.data.password}' | base64 -d)
+
+# Use token for API calls
+awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" me
+```
+
+### 2. kubectl Secret vs Custom Password
 ```bash
 # Issue: kubectl secret shows different password than what you use to login
 # Cause: You changed the password in Web UI, but kubectl secret wasn't updated
@@ -519,21 +540,23 @@ kubectl get secret awx-admin-password -n awx -o jsonpath='{.data.password}' | ba
 
 # Solution: Update kubectl secret with your current password
 kubectl create secret generic awx-admin-password -n awx \
-  --from-literal=password="YOUR_CUSTOM_PASSWORD" \
+  --from-literal=password="$AWX_TOKEN" \
   --dry-run=client -o yaml | kubectl apply -f -
 ```
 
 ### 2. Token Authentication Methods
 ```bash
-# Method 1: Use kubectl secret (after updating it)
+# Method 1: Extract stored token (recommended - no regeneration needed)
 export AWX_TOKEN=$(kubectl get secret awx-admin-password -n awx -o jsonpath='{.data.password}' | base64 -d)
+awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" me
 
-# Method 2: Use username/password directly
+# Method 2: Use username/password directly (generates new token each time)
 awx --conf.host https://localhost -k --conf.username admin --conf.password "YOUR_PASSWORD" me
 
 # Method 3: Create token in Web UI (most secure)
 # Go to AWX Web UI → User Menu → Tokens → Create Token
 export AWX_TOKEN="your_web_ui_token_here"
+awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" me
 ```
 
 ### 3. Password Reset
@@ -543,8 +566,14 @@ kubectl delete secret awx-admin-password -n awx
 kubectl rollout restart deployment/awx-web -n awx
 kubectl rollout restart deployment/awx-task -n awx
 
-# Get new default password
-kubectl get secret awx-admin-password -n awx -o jsonpath='{.data.password}' | base64 -d
+# Get new default password and generate new token
+export AWX_PASSWORD=$(kubectl get secret awx-admin-password -n awx -o jsonpath='{.data.password}' | base64 -d)
+AWX_TOKEN=$(awx --conf.host https://localhost -k --conf.username admin --conf.password "$AWX_PASSWORD" login -f json | jq -r .token)
+
+# Store new token in kubectl secret
+kubectl create secret generic awx-admin-password -n awx \
+  --from-literal=password="$AWX_TOKEN" \
+  --dry-run=client -o yaml | kubectl apply -f -
 ```
 
 ## SSH Key Troubleshooting
@@ -725,6 +754,7 @@ kubectl get pods -n awx -o wide > awx_pods.txt
 # AWX information
 source ~/awx-venv/bin/activate
 export AWX_TOKEN=$(kubectl get secret awx-admin-password -n awx -o jsonpath='{.data.password}' | base64 -d)
+echo "$AWX_TOKEN"
 awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" me > awx_user.txt
 awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" job_template list > job_templates.txt
 
