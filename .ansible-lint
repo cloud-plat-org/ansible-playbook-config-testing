@@ -1,12 +1,15 @@
----
-profile: basic        # Current (good starting point)
-# profile: min        # Most permissive
-# profile: moderate   # More strict
-# profile: safety     # Security focused
-# profile: shared     # Publishing ready
-# profile: production # Most strict
+# Ansible Lint Configuration for CI/CD
+skip_list:
+  - yaml[line-length]  # Allow longer lines for readability
+  - name[casing]      # Allow different naming conventions
+  - risky-file-permissions  # Allow specific file permissions
+
 exclude_paths:
-  - .ansible/
-  - ansible/test2/.ansible/
-skip_list: []
-enable_list: []
+  - .cache/
+  - .github/
+  - .git/
+  - .tox/
+  - .venv/
+  - venv/
+
+verbosity: 1
