@@ -127,6 +127,10 @@ sudo mv argocd /usr/local/bin/
 argocd login localhost:8080 --username admin --password Thisisit! --insecure
 ```
 
+### Example Apps:
+    https://github.com/argoproj/argocd-example-apps
+    
+
 - Use `--insecure` due to self-signed certs.
 
 ***
