@@ -90,7 +90,7 @@ awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" job list
 ### 3. Test Different Services
 ```bash
 # Test with different service
-JOB_ID2=$(awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" job_template launch \
+JOB_ID=$(awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" job_template launch \
   --job_template "Stop Services WSL" --extra_vars '{"service_name": "cron"}' | jq -r .id)
 
 # Monitor second job

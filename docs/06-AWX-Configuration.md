@@ -32,13 +32,15 @@ awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" project create \
 ### 3. Enable Auto-Sync on Launch
 ```bash
 # Get project ID
-PROJECT_ID=$(awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" project list | jq -r '.results[] | select(.name == "WSL Project") | .id')
+PROJECT_ID=$(awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" project list |
+ jq -r '.results[] | select(.name == "WSL Project") | .id')
 
 # Enable auto-sync
 awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" project modify "$PROJECT_ID" --scm_update_on_launch true
 
 # Verify project configuration
-awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" project get "$PROJECT_ID" | jq '{name, scm_type, scm_url, scm_branch, scm_update_on_launch}'
+awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" project get "$PROJECT_ID" |
+ jq '{name, scm_type, scm_url, scm_branch, scm_update_on_launch}'
 ```
 
 ## AWX Inventory Setup
