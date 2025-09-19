@@ -184,6 +184,42 @@ curl -k https://localhost
 # Expected: AWX login page HTML
 ```
 
+## Token Management
+
+### 1. Get Default Token
+```bash
+# Get token from kubectl secret (default password)
+export AWX_TOKEN=$(kubectl get secret awx-admin-password -n awx -o jsonpath='{.data.password}' | base64 -d)
+```
+
+### 2. Update kubectl Secret with Custom Password
+```bash
+# If you changed the AWX password in the Web UI, update the secret
+kubectl create secret generic awx-admin-password -n awx \
+  --from-literal=password="YOUR_CUSTOM_PASSWORD" \
+  --dry-run=client -o yaml | kubectl apply -f -
+
+# Verify the secret was updated
+kubectl get secret awx-admin-password -n awx -o jsonpath='{.data.password}' | base64 -d
+```
+
+### 3. Alternative: Use Username/Password Authentication
+```bash
+# Use username and password instead of token
+awx --conf.host https://localhost -k --conf.username admin --conf.password "YOUR_PASSWORD" me
+```
+
+### 4. Alternative: Create Token in Web UI
+1. Access AWX Web UI: https://localhost
+2. Login with your credentials
+3. Go to User Menu → Tokens
+4. Create new token and copy it
+5. Use the token:
+```bash
+export AWX_TOKEN="your_web_ui_token_here"
+awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" me
+```
+
 ## Service Configuration
 
 ### 1. Check AWX Services

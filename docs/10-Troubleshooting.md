@@ -507,6 +507,46 @@ sudo whoami
 # Should return: root
 ```
 
+## Password and Token Issues
+
+### 1. kubectl Secret vs Custom Password
+```bash
+# Issue: kubectl secret shows different password than what you use to login
+# Cause: You changed the password in Web UI, but kubectl secret wasn't updated
+
+# Check what kubectl secret has
+kubectl get secret awx-admin-password -n awx -o jsonpath='{.data.password}' | base64 -d
+
+# Solution: Update kubectl secret with your current password
+kubectl create secret generic awx-admin-password -n awx \
+  --from-literal=password="YOUR_CUSTOM_PASSWORD" \
+  --dry-run=client -o yaml | kubectl apply -f -
+```
+
+### 2. Token Authentication Methods
+```bash
+# Method 1: Use kubectl secret (after updating it)
+export AWX_TOKEN=$(kubectl get secret awx-admin-password -n awx -o jsonpath='{.data.password}' | base64 -d)
+
+# Method 2: Use username/password directly
+awx --conf.host https://localhost -k --conf.username admin --conf.password "YOUR_PASSWORD" me
+
+# Method 3: Create token in Web UI (most secure)
+# Go to AWX Web UI → User Menu → Tokens → Create Token
+export AWX_TOKEN="your_web_ui_token_here"
+```
+
+### 3. Password Reset
+```bash
+# Reset to default password (invalidates all tokens)
+kubectl delete secret awx-admin-password -n awx
+kubectl rollout restart deployment/awx-web -n awx
+kubectl rollout restart deployment/awx-task -n awx
+
+# Get new default password
+kubectl get secret awx-admin-password -n awx -o jsonpath='{.data.password}' | base64 -d
+```
+
 ## SSH Key Troubleshooting
 
 ### 1. Key Format Issues

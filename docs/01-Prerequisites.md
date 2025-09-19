@@ -35,17 +35,21 @@ This document outlines all system requirements, software prerequisites, and tool
 # Verify WSL version
 wsl --list --verbose
 
-# Expected output:
-#   NAME            STATE           VERSION
-#   Ubuntu-22.04    Running         2
-#   Ubuntu-24.04    Running         2
-#   kali-linux      Running         2
+#  NAME              STATE           VERSION
+#  Ubuntu            Running         2
+#  docker-desktop    Running         2
+#  Ubuntu-24.04      Running         2
+#  kali-linux        Running         2
+
 ```
 
 ## Required Tools Installation
 
 ### Core Tools
 ```bash
+# Check what updates are available
+sudo apt list --upgradable
+
 # Update system
 sudo apt update && sudo apt upgrade -y
 
