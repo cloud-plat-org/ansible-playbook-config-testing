@@ -289,8 +289,9 @@ ansible-lint --version
 ### 2. Configure Ansible Lint
 ```bash
 # Create ansible-lint configuration file
-cat > ~/.ansible-lint << 'EOF'
-# Ansible Lint Configuration
+# Create project-specific ansible-lint configuration for CI/CD
+cat > .ansible-lint << 'EOF'
+# Ansible Lint Configuration for CI/CD
 skip_list:
   - yaml[line-length]  # Allow longer lines for readability
   - name[casing]      # Allow different naming conventions
