@@ -428,6 +428,33 @@ awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" me
 awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" job_template list
 ```
 
+## Key Success Factors
+
+### 1. SSH Key Authentication
+- **Eliminates interactive password prompts**
+- **More secure than password authentication**
+- **Enables fully automated operations**
+
+### 2. Correct Network Configuration
+- **WSL instances must listen on all interfaces (0.0.0.0)**
+- **Use actual WSL IP addresses (172.22.192.129) not localhost**
+- **Configure proper port mapping (2223, 2224)**
+
+### 3. Sudoers Configuration
+- **Allows automation without password prompts**
+- **Configure passwordless sudo for daniv user**
+- **Essential for non-interactive privilege escalation**
+
+### 4. AWX Job Template Settings
+- **`become_enabled: true`** - Enables privilege escalation
+- **`ask_credential_on_launch: false`** - Prevents credential prompts
+- **Proper credential association** - SSH key credential linked
+
+### 5. Credential Management
+- **Create SSH key credential** - Not password-based
+- **Disassociate old credentials** before adding new ones
+- **AWX doesn't allow multiple Machine credentials** on same job template
+
 ## Prevention and Best Practices
 
 ### Regular Maintenance
