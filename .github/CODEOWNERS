@@ -1,0 +1,25 @@
+# CODEOWNERS file for AWX WSL Setup Repository
+# This file defines who owns different parts of the codebase
+
+# Global owners - Solutions Engineers team
+* @cloud-plat-org/solutions-engineers
+
+# Documentation ownership
+docs/ @cloud-plat-org/solutions-engineers
+
+# Playbook ownership
+*.yml @cloud-plat-org/solutions-engineers
+*.yaml @cloud-plat-org/solutions-engineers
+
+# GitHub Actions and workflows
+.github/ @cloud-plat-org/solutions-engineers
+
+# Configuration files
+.ansible-lint @cloud-plat-org/solutions-engineers
+
+# Root documentation and setup files
+README.md @cloud-plat-org/solutions-engineers
+stop_services.yml @cloud-plat-org/solutions-engineers
+
+# AWX configuration files
+awx-ingress.yml @cloud-plat-org/solutions-engineers
