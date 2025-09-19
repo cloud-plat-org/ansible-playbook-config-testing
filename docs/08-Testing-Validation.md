@@ -1,4 +1,4 @@
-git # Testing & Validation - Job Testing & Expected Outputs
+# Testing & Validation - Job Testing & Expected Outputs
 
 ## Overview
 This document covers AWX job testing, expected output verification, troubleshooting test failures, and performance validation.
