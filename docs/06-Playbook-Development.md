@@ -72,11 +72,10 @@ vim test_service_lifecycle.yml
 ansible-playbook --syntax-check test_service_lifecycle.yml
 
 # 3. Commit changes
-git add test_service_lifecycle.yml
-git commit -m "Update service lifecycle playbook"
+git commit -am "Update playbook"
 
 # 4. Push to GitHub (AWX pulls from CLPLAT-2223 branch)
-git push origin CLPLAT-2223
+git push
 
 # 5. Sync AWX project to get latest changes
 awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" project update "WSL Project"

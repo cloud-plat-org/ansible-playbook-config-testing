@@ -1,49 +1,41 @@
 ---
-# Service Management Role - Main Tasks
-# This role provides flexible service management capabilities
+# Service Management Role - Production Ready
+# Streamlined role for service lifecycle management
 
-- name: Debug - Show basic info
-  debug:
-    msg: "Host: {{ inventory_hostname }}\nUser: {{ ansible_user }}\nService: {{ service_name }}\nAction: {{ service_action | default('status') }}"
-  when: debug_mode | default(false)
+- name: "{{ service_action | title }} service: {{ service_name }}"
+  systemd:
+    name: "{{ service_name }}"
+    state: "{{ service_states[service_action] }}"
+  register: service_result
+  when: service_action in ['stop', 'start', 'restart']
+  vars:
+    service_states:
+      stop: stopped
+      start: started  
+      restart: restarted
 
-- name: Test sudo access
-  command: whoami
-  register: whoami_result
-  when: debug_mode | default(false)
+- name: "Get {{ service_name }} service status"
+  command: "systemctl status {{ service_name }}"
+  register: service_status
+  changed_when: false
+  failed_when: false
+  when: service_action == "status"
 
-- name: Show whoami result
-  debug:
-    msg: "Running as: {{ whoami_result.stdout }}"
-  when: debug_mode | default(false)
+- name: "Set service status fact"
+  set_fact:
+    service_status_output: "{{ service_status.stdout_lines[0] | default('Service not found') }}"
+  when: service_action == "status"
 
-# Include appropriate task file based on service_action
-- name: Include service status check
-  include_tasks: status.yml
-  when: service_action | default('status') == 'status'
+- name: "Enable {{ service_name }} service"
+  systemd:
+    name: "{{ service_name }}"
+    enabled: yes
+  register: service_result
+  when: service_action == "enable"
 
-- name: Include service stop tasks
-  include_tasks: stop.yml
-  when: service_action | default('status') == 'stop'
-
-- name: Include service start tasks
-  include_tasks: start.yml
-  when: service_action | default('status') == 'start'
-
-- name: Include service restart tasks
-  include_tasks: restart.yml
-  when: service_action | default('status') == 'restart'
-
-- name: Include service enable tasks
-  include_tasks: enable.yml
-  when: service_action | default('status') == 'enable'
-
-- name: Include service disable tasks
-  include_tasks: disable.yml
-  when: service_action | default('status') == 'disable'
-
-# Handle multiple services if provided
-- name: Process multiple services
-  include_tasks: "{{ item }}.yml"
-  loop: "{{ service_actions }}"
-  when: service_actions is defined and service_actions | length > 0
+- name: "Disable {{ service_name }} service"
+  systemd:
+    name: "{{ service_name }}"
+    enabled: no
+  register: service_result
+  when: service_action == "disable"
