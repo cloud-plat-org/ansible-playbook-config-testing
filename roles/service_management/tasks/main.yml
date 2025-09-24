@@ -1,41 +1,30 @@
 ---
-# Service Management Role - Production Ready
-# Streamlined role for service lifecycle management
+# Service Management Role - Ultra Clean Production
+# Single task execution - no skipping messages
 
-- name: "{{ service_action | title }} service: {{ service_name }}"
+- name: "{{ service_action | title }} {{ service_name }} service"
   systemd:
     name: "{{ service_name }}"
-    state: "{{ service_states[service_action] }}"
-  register: service_result
-  when: service_action in ['stop', 'start', 'restart']
+    state: "{{ service_states[service_action] | default(omit) }}"
+    enabled: "{{ service_enabled[service_action] | default(omit) }}"
   vars:
     service_states:
       stop: stopped
-      start: started  
+      start: started
       restart: restarted
+    service_enabled:
+      enable: yes
+      disable: no
+  when: service_action in ['stop', 'start', 'restart', 'enable', 'disable']
 
-- name: "Get {{ service_name }} service status"
+- name: "Check {{ service_name }} service status"
   command: "systemctl status {{ service_name }}"
   register: service_status
   changed_when: false
   failed_when: false
   when: service_action == "status"
 
-- name: "Set service status fact"
-  set_fact:
-    service_status_output: "{{ service_status.stdout_lines[0] | default('Service not found') }}"
-  when: service_action == "status"
-
-- name: "Enable {{ service_name }} service"
-  systemd:
-    name: "{{ service_name }}"
-    enabled: yes
-  register: service_result
-  when: service_action == "enable"
-
-- name: "Disable {{ service_name }} service"
-  systemd:
-    name: "{{ service_name }}"
-    enabled: no
-  register: service_result
-  when: service_action == "disable"
+- name: "Display service status"
+  debug:
+    msg: "{{ service_status.stdout_lines[0] | default('Service not found') }}"
+  when: service_action == "status" and service_status is defined
