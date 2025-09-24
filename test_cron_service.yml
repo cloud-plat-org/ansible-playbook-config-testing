@@ -1,0 +1,38 @@
+---
+- name: Test cron service stop/start cycle on WSL instances
+  hosts: all
+  become: true
+  become_method: sudo
+  roles:
+    - service_management
+  vars:
+    service_name: "cron"
+    service_action: "stop"
+    debug_mode: true
+
+- name: Wait 10 seconds
+  hosts: all
+  wait_for:
+    timeout: 10
+
+- name: Start cron service
+  hosts: all
+  become: true
+  become_method: sudo
+  roles:
+    - service_management
+  vars:
+    service_name: "cron"
+    service_action: "start"
+    debug_mode: true
+
+- name: Verify cron service is running
+  hosts: all
+  become: true
+  become_method: sudo
+  roles:
+    - service_management
+  vars:
+    service_name: "cron"
+    service_action: "status"
+    debug_mode: true
