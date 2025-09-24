@@ -26,7 +26,7 @@ awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" project create \
   --organization Default \
   --scm_type git \
   --scm_url "https://github.com/cloud-plat-org/ansible-playbook-config-testing.git" \
-  --scm_branch "CLPLAT-2221"
+  --scm_branch "CLPLAT-2223"
 
 ## Changing branch back to main.
 ```bash
@@ -34,7 +34,7 @@ awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" project create \
 PROJECT_ID=$(awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" project list | jq -r '.results[] | select(.name=="WSL Project") | .id')
 
 # Change branch to "main"
-awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" project modify "$PROJECT_ID" --scm_branch "main"
+awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" project modify "$PROJECT_ID" --scm_branch "CLPLAT-2223"
 
 # Verify the change
 echo "Updated branch:"
@@ -477,13 +477,16 @@ awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" job get "$JOB_ID"
 ### 7. SSH Key Troubleshooting
 ```bash
 # Test SSH connectivity from AWX pod
+# Get current AWX task pod name (pod names change on restarts)
 kubectl get pods -n awx | grep awx-task
-kubectl exec -n awx -it awx-task-7b9c887444-jb9vd -- ssh -p 2223 daniv@172.22.192.129
-kubectl exec -n awx -it awx-task-7b9c887444-jb9vd -- ssh -p 2224 daniv@172.22.192.129
 
-# Test SSH from local machine
-ssh -p 2223 daniv@172.22.192.129
-ssh -p 2224 daniv@172.22.192.129
+# Test SSH from AWX task pod (use current pod name from above)
+kubectl exec -n awx -it awx-task-65c6fb66f6-f9gr7 -- ssh -p 2223 daniv@172.22.192.129
+kubectl exec -n awx -it awx-task-65c6fb66f6-f9gr7 -- ssh -p 2224 daniv@172.22.192.129
+
+# Test SSH from local machine (these work!)
+ssh -p 2223 daniv@172.22.192.129  # Connects to Ubuntu-24.04 (wslubuntu1)
+ssh -p 2224 daniv@172.22.192.129  # Connects to kali-linux (wslkali1)
 
 # Add host keys to known_hosts
 ssh-keyscan -p 2223 localhost >> ~/.ssh/known_hosts

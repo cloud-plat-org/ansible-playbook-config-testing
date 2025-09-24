@@ -102,6 +102,15 @@ kubectl get svc -A
 curl -k https://localhost
 ```
 
+Start WSL instances in PowerShell:
+```powershell
+# Start Ubuntu-24.04 (your AWX target)
+wsl -d Ubuntu-24.04
+
+# Start kali-linux 
+wsl -d kali-linux
+```
+
 ## Required Tools Installation
 
 ### 1. Install Additional Tools
