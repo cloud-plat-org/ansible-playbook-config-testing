@@ -50,7 +50,7 @@ jobs:
         ansible-lint --version
         echo ""
         echo "📋 Running Ansible Lint on playbooks (excluding Kubernetes manifests)..."
-        ansible-lint . --exclude docs/ --exclude .github/ --verbose
+        ansible-lint . --exclude docs/ --exclude .github/ -v
     
     - name: Upload lint results
       if: always()
@@ -83,9 +83,10 @@ jobs:
       id: find-playbooks
       run: |
         # Create a temporary file to store playbook paths
-        echo "playbooks_file=$(mktemp)" >> $GITHUB_OUTPUT
-        find . -name '*.yml' -o -name '*.yaml' | grep -v '.github' | grep -v 'docs/' | grep -v 'awx-ingress.yml' | grep -v 'k8s/' | grep -v 'kubernetes/' > ${{ steps.find-playbooks.outputs.playbooks_file }}
-        echo "playbooks_count=$(wc -l < ${{ steps.find-playbooks.outputs.playbooks_file }})" >> $GITHUB_OUTPUT
+        PLAYBOOKS_FILE=$(mktemp)
+        echo "playbooks_file=$PLAYBOOKS_FILE" >> $GITHUB_OUTPUT
+        find . -name '*.yml' -o -name '*.yaml' | grep -v '.github' | grep -v 'docs/' | grep -v 'awx-ingress.yml' | grep -v 'k8s/' | grep -v 'kubernetes/' > "$PLAYBOOKS_FILE"
+        echo "playbooks_count=$(wc -l < "$PLAYBOOKS_FILE")" >> $GITHUB_OUTPUT
     
     - name: Run Ansible Syntax Check
       if: steps.find-playbooks.outputs.playbooks_count > 0
