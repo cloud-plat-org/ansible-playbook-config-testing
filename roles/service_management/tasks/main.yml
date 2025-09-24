@@ -1,6 +1,6 @@
 ---
-# Service Management Role - Ultra Clean Production
-# Single task execution - no skipping messages
+# Service Management Role - Zero Noise Production
+# Single task handles all actions
 
 - name: "{{ service_action | title }} {{ service_name }} service"
   systemd:
@@ -15,16 +15,11 @@
     service_enabled:
       enable: yes
       disable: no
-  when: service_action in ['stop', 'start', 'restart', 'enable', 'disable']
+  when: service_action != "status"
 
 - name: "Check {{ service_name }} service status"
-  command: "systemctl status {{ service_name }}"
+  command: "systemctl status {{ service_name }} --no-pager -l"
   register: service_status
   changed_when: false
   failed_when: false
   when: service_action == "status"
-
-- name: "Display service status"
-  debug:
-    msg: "{{ service_status.stdout_lines[0] | default('Service not found') }}"
-  when: service_action == "status" and service_status is defined
