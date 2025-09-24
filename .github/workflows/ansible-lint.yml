@@ -35,8 +35,8 @@ jobs:
       run: |
         echo "Ansible Lint version:"
         ansible-lint --version
-        echo "Running Ansible Lint on all playbooks..."
-        ansible-lint .
+        echo "Running Ansible Lint on playbooks (excluding Kubernetes manifests)..."
+        ansible-lint . --exclude docs/ --exclude .github/ --verbose
     
     - name: Comment PR with results
       if: github.event_name == 'pull_request'

@@ -30,7 +30,7 @@ jobs:
         python-version: '3.11'
     
     - name: Cache pip dependencies
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       with:
         path: ~/.cache/pip
         key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements*.txt') }}
@@ -49,12 +49,12 @@ jobs:
         echo "🔍 Ansible Lint version:"
         ansible-lint --version
         echo ""
-        echo "📋 Running Ansible Lint on all playbooks..."
-        ansible-lint . --verbose
+        echo "📋 Running Ansible Lint on playbooks (excluding Kubernetes manifests)..."
+        ansible-lint . --exclude docs/ --exclude .github/ --verbose
     
     - name: Upload lint results
       if: always()
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: ansible-lint-results
         path: |
@@ -82,20 +82,23 @@ jobs:
     - name: Find Ansible playbooks
       id: find-playbooks
       run: |
-        echo "playbooks=$(find . -name '*.yml' -o -name '*.yaml' | grep -v '.github' | tr '\n' ' ')" >> $GITHUB_OUTPUT
+        # Create a temporary file to store playbook paths
+        echo "playbooks_file=$(mktemp)" >> $GITHUB_OUTPUT
+        find . -name '*.yml' -o -name '*.yaml' | grep -v '.github' | grep -v 'docs/' | grep -v 'awx-ingress.yml' | grep -v 'k8s/' | grep -v 'kubernetes/' > ${{ steps.find-playbooks.outputs.playbooks_file }}
+        echo "playbooks_count=$(wc -l < ${{ steps.find-playbooks.outputs.playbooks_file }})" >> $GITHUB_OUTPUT
     
     - name: Run Ansible Syntax Check
-      if: steps.find-playbooks.outputs.playbooks != ''
+      if: steps.find-playbooks.outputs.playbooks_count > 0
       run: |
         echo "🔍 Checking syntax for playbooks..."
-        for playbook in ${{ steps.find-playbooks.outputs.playbooks }}; do
+        while IFS= read -r playbook; do
           echo "Checking: $playbook"
           ansible-playbook --syntax-check "$playbook" || exit 1
-        done
+        done < ${{ steps.find-playbooks.outputs.playbooks_file }}
         echo "✅ All playbooks passed syntax check"
     
     - name: No playbooks found
-      if: steps.find-playbooks.outputs.playbooks == ''
+      if: steps.find-playbooks.outputs.playbooks_count == 0
       run: |
         echo "ℹ️ No Ansible playbooks found to check"
 
@@ -119,4 +122,4 @@ jobs:
     - name: Run security-focused linting
       run: |
         echo "🔒 Running security-focused Ansible Lint..."
-        ansible-lint . --profile production --skip-list yaml[line-length]
+        ansible-lint . --exclude docs/ --exclude .github/ --profile production --skip-list yaml[line-length]
