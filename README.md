@@ -110,7 +110,8 @@ awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" me
 ### Key Files
 - **AWX Config**: `awx-deploy.yml`, `awx-ingress.yml`
 - **SSH Key**: `~/.ssh/awx_wsl_key_traditional`
-- **Playbook**: `stop_services.yml`
+- **Playbooks**: `test_service_lifecycle.yml` (flexible), `stop_services.yml` (legacy)
+- **Ansible Role**: `roles/service_management/` (reusable service management)
 - **Startup Script**: `~/start_awx.sh`
 
 ---

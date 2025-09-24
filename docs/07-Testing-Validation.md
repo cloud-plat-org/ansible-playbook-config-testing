@@ -122,8 +122,14 @@ awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" job_template crea
 
 # 2. Associate SSH credential
 JOB_TEMPLATE_ID=$(awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" job_template list --name "Test Service Lifecycle WSL" | jq -r '.results[0].id')
+CRED_ID=$(awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" credential list --name "WSL SSH Key" | jq -r '.results[0].id')
 awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" job_template associate --credential "$CRED_ID" "$JOB_TEMPLATE_ID"
 ```
+
+**Prerequisites:**
+- Playbook must be committed and pushed to GitHub
+- AWX project must be synced after git push
+- SSH credential must exist in AWX
 
 ## **Service Testing Examples**
 
@@ -138,6 +144,15 @@ awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" job_template asso
 - **`ssh`** - Will break AWX connectivity
 - **`systemd-logind`** - Core login service
 - **`dbus`** - System message bus
+
+## **Troubleshooting Common Issues**
+
+### Job Execution Fails
+```bash
+# Check job status and output
+awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" job get "$JOB_ID" | jq '{id, status, finished}'
+awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" job stdout "$JOB_ID"
+```
 
 ### 5. Test Different Services
 ```bash

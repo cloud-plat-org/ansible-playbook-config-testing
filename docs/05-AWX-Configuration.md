@@ -187,9 +187,15 @@ echo "Job Template ID: $JOB_TEMPLATE_ID"
 ```
 
 **If you get "Playbook not found" error:**
-1. Push the playbook to GitHub: `git push origin CLPLAT-2223`
-2. Sync AWX project: `awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" project update "WSL Project"`
-3. Wait for sync to complete, then create the job template
+1. **Push the playbook to GitHub**: `git push origin CLPLAT-2223`
+2. **Sync AWX project**: `awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" project update "WSL Project"`
+3. **Wait for sync to complete**: Check status with `awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" project_update get UPDATE_ID | jq '{status, finished}'`
+4. **Then create the job template**
+
+**Important Notes:**
+- AWX only sees playbooks that are committed and pushed to GitHub
+- Project sync is required after every git push
+- Job template creation will fail if playbook doesn't exist in the repository
 
 ### 2. Associate SSH Key Credential
 ```bash
