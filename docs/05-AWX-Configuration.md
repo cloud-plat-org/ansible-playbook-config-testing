@@ -168,7 +168,7 @@ awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" job_template crea
   --name "Test Service Lifecycle WSL" \
   --project "WSL Project" \
   --inventory "WSL Lab" \
-  --playbook "stop_services.yml" \
+  --playbook "test_service_lifecycle.yml" \
   --become_enabled true \
   --ask_credential_on_launch false
 
@@ -204,10 +204,10 @@ awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" job_template asso
 
 # Method 2: Associate credential using credential name (alternative approach)
 awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" job_template create \
-  --name "Stop Services WSL" \
+  --name "Test Service Lifecycle WSL" \
   --project "WSL Project" \
   --inventory "WSL Lab" \
-  --playbook "stop_services.yml" \
+  --playbook "test_service_lifecycle.yml" \
   --credential "WSL SSH Key" \
   --become_enabled true
 
@@ -222,10 +222,10 @@ awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" job_template get 
 
 # Expected output:
 # {
-#   "name": "Stop Services WSL",
+#   "name": "Test Service Lifecycle WSL",
 #   "project": 1,
 #   "inventory": 1,
-#   "playbook": "stop_services.yml",
+#   "playbook": "test_service_lifecycle.yml",
 #   "become_enabled": true,
 #   "ask_credential_on_launch": false
 # }
@@ -265,8 +265,8 @@ awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" job_template get 
 ```bash
 # Launch job with service name variable
 JOB_ID=$(awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" job_template launch \
-  --job_template "Stop Services WSL" \
-  --extra_vars '{"service_name": "ssh"}' | jq -r .id)
+  --job_template "Test Service Lifecycle WSL" \
+  --extra_vars '{"target_service": "cron"}' | jq -r .id)
 
 echo "Job ID: $JOB_ID"
 ```
@@ -371,7 +371,7 @@ awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" job_template get 
 ```bash
 # Add extra variables to job template
 awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" job_template modify "$JOB_TEMPLATE_ID" \
-  --extra_vars '{"service_name": "ssh", "debug_mode": true}'
+  --extra_vars '{"target_service": "cron", "debug_mode": true}'
 ```
 
 ### 2. Configure Job Tags

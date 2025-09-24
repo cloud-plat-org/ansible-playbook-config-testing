@@ -33,7 +33,7 @@ git remote -v
 
 ### 1. Create Final Working Playbook
 ```bash
-cat > stop_services.yml << 'EOF'
+cat > test_service_lifecycle.yml << 'EOF'
 ---
 - name: Stop services on WSL instances
   hosts: all
@@ -319,16 +319,16 @@ source ~/.bashrc
 source ~/.venvs/ansible/bin/activate
 
 # Lint a single playbook
-ansible-lint stop_services.yml
+ansible-lint test_service_lifecycle.yml
 
 # Lint all playbooks in directory
 ansible-lint .
 
 # Lint with verbose output
-ansible-lint -v stop_services.yml
+ansible-lint -v test_service_lifecycle.yml
 
 # Lint and fix common issues automatically
-ansible-lint --fix stop_services.yml
+ansible-lint --fix test_service_lifecycle.yml
 ```
 
 ### 4. IDE Integration
@@ -381,13 +381,13 @@ pre-commit install
 ansible-lint --list-rules
 
 # Skip specific rules
-ansible-lint --skip-list yaml[line-length],name[casing] stop_services.yml
+ansible-lint --skip-list yaml[line-length],name[casing] test_service_lifecycle.yml
 
 # Show only errors
-ansible-lint --quiet stop_services.yml
+ansible-lint --quiet test_service_lifecycle.yml
 
 # Generate detailed report
-ansible-lint --progressive stop_services.yml
+ansible-lint --progressive test_service_lifecycle.yml
 ```
 
 ## Testing Playbooks
@@ -395,7 +395,7 @@ ansible-lint --progressive stop_services.yml
 ### 1. Syntax Validation
 ```bash
 # Check playbook syntax
-ansible-playbook --syntax-check stop_services.yml
+ansible-playbook --syntax-check test_service_lifecycle.yml
 ansible-playbook --syntax-check test_connection.yml
 ansible-playbook --syntax-check manage_services.yml
 ```
@@ -403,7 +403,7 @@ ansible-playbook --syntax-check manage_services.yml
 ### 2. Dry Run Testing
 ```bash
 # Test playbook without executing
-ansible-playbook --check --diff stop_services.yml -i "172.22.192.129:2223,172.22.192.129:2224" -e "service_name=ssh"
+ansible-playbook --check --diff test_service_lifecycle.yml -i "172.22.192.129:2223,172.22.192.129:2224" -e "service_name=ssh"
 ```
 
 ### 3. Local Testing
@@ -435,7 +435,7 @@ This repository contains Ansible playbooks for automating WSL instances.
 
 ## Playbooks
 
-### stop_services.yml
+### test_service_lifecycle.yml
 Stops specified services on WSL instances.
 
 **Variables:**
@@ -443,7 +443,7 @@ Stops specified services on WSL instances.
 
 **Usage:**
 ```bash
-ansible-playbook stop_services.yml -e "service_name=ssh"
+ansible-playbook test_service_lifecycle.yml -e "service_name=ssh"
 ```
 
 ### test_connection.yml

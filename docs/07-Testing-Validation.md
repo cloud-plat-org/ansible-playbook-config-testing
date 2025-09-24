@@ -158,7 +158,7 @@ awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" job stdout "$JOB_
 ```bash
 # Test with different service
 JOB_ID=$(awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" job_template launch \
-  --job_template "Stop Services WSL" --extra_vars '{"service_name": "systemd-resolved"}' | jq -r .id)
+  --job_template "Test Service Lifecycle WSL" --extra_vars '{"service_name": "systemd-resolved"}' | jq -r .id)
 
 # Monitor second job
 awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" job stdout "$JOB_ID"
@@ -280,7 +280,7 @@ ok: [wslubuntu1] => {
 }
 
 TASK [Test additional services (if service_name is ssh)] ******************
-included: /runner/project/stop_services.yml for wslkali1, wslubuntu1
+included: /runner/project/test_service_lifecycle.yml for wslkali1, wslubuntu1
 
 TASK [Stop cron service] **************************************************
 changed: [wslkali1]
@@ -326,10 +326,10 @@ kubectl top nodes
 ```bash
 # Launch multiple jobs simultaneously
 JOB_ID3=$(awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" job_template launch \
-  --job_template "Stop Services WSL" --extra_vars '{"service_name": "cron"}' | jq -r .id)
+  --job_template "Test Service Lifecycle WSL" --extra_vars '{"service_name": "cron"}' | jq -r .id)
 
 JOB_ID4=$(awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" job_template launch \
-  --job_template "Stop Services WSL" --extra_vars '{"service_name": "systemd-resolved"}' | jq -r .id)
+  --job_template "Test Service Lifecycle WSL" --extra_vars '{"service_name": "systemd-resolved"}' | jq -r .id)
 
 # Monitor both jobs
 awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" job get "$JOB_ID3" | jq '{id, status}'
@@ -379,10 +379,10 @@ awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" job get "$JOB_ID"
 #### Playbook Errors
 ```bash
 # Check playbook syntax
-ansible-playbook --syntax-check stop_services.yml
+ansible-playbook --syntax-check test_service_lifecycle.yml
 
 # Test playbook locally
-ansible-playbook stop_services.yml -i local_inventory -e "service_name=ssh" --check
+ansible-playbook test_service_lifecycle.yml -i local_inventory -e "service_name=ssh" --check
 
 # Check AWX project sync
 awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" project get "$PROJECT_ID" | jq '{status, last_job_run}'
@@ -423,7 +423,7 @@ awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" project get "$PRO
 # Launch multiple jobs to test system load
 for i in {1..5}; do
   awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" job_template launch \
-    --job_template "Stop Services WSL" --extra_vars "{\"service_name\": \"test$i\"}" &
+    --job_template "Test Service Lifecycle WSL" --extra_vars "{\"service_name\": \"test$i\"}" &
 done
 
 # Monitor system performance
@@ -434,7 +434,7 @@ kubectl top pods -n awx
 ```bash
 # Test with invalid service name
 JOB_ID_FAIL=$(awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" job_template launch \
-  --job_template "Stop Services WSL" --extra_vars '{"service_name": "nonexistent"}' | jq -r .id)
+  --job_template "Test Service Lifecycle WSL" --extra_vars '{"service_name": "nonexistent"}' | jq -r .id)
 
 # Check how failure is handled
 awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" job stdout "$JOB_ID_FAIL"
@@ -447,7 +447,7 @@ ssh -i ~/.ssh/awx_wsl_key_traditional -p 2223 daniv@172.22.192.129 "sudo systemc
 
 # Launch job and see how it handles the failure
 JOB_ID_NETWORK=$(awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" job_template launch \
-  --job_template "Stop Services WSL" --extra_vars '{"service_name": "ssh"}' | jq -r .id)
+  --job_template "Test Service Lifecycle WSL" --extra_vars '{"target_service": "cron"}' | jq -r .id)
 
 # Check job results
 awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" job stdout "$JOB_ID_NETWORK"
