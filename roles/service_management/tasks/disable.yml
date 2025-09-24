@@ -1,0 +1,10 @@
+---
+- name: Disable service
+  command: systemctl disable {{ service_name }}
+  register: disable_result
+  ignore_errors: true
+
+- name: Show disable result
+  debug:
+    msg: "Disable result: {{ disable_result.stdout if disable_result.stdout else 'No output' }}, RC: {{ disable_result.rc }}"
+  when: debug_mode | default(false)

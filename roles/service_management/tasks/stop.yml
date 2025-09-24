@@ -1,0 +1,10 @@
+---
+- name: Stop service
+  command: systemctl stop {{ service_name }}
+  register: stop_result
+  ignore_errors: true
+
+- name: Show stop result
+  debug:
+    msg: "Stop result: {{ stop_result.stdout if stop_result.stdout else 'No output' }}, RC: {{ stop_result.rc }}"
+  when: debug_mode | default(false)

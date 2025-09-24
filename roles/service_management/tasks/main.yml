@@ -1,0 +1,49 @@
+---
+# Service Management Role - Main Tasks
+# This role provides flexible service management capabilities
+
+- name: Debug - Show basic info
+  debug:
+    msg: "Host: {{ inventory_hostname }}\nUser: {{ ansible_user }}\nService: {{ service_name }}\nAction: {{ service_action | default('status') }}"
+  when: debug_mode | default(false)
+
+- name: Test sudo access
+  command: whoami
+  register: whoami_result
+  when: debug_mode | default(false)
+
+- name: Show whoami result
+  debug:
+    msg: "Running as: {{ whoami_result.stdout }}"
+  when: debug_mode | default(false)
+
+# Include appropriate task file based on service_action
+- name: Include service status check
+  include_tasks: status.yml
+  when: service_action | default('status') == 'status'
+
+- name: Include service stop tasks
+  include_tasks: stop.yml
+  when: service_action | default('status') == 'stop'
+
+- name: Include service start tasks
+  include_tasks: start.yml
+  when: service_action | default('status') == 'start'
+
+- name: Include service restart tasks
+  include_tasks: restart.yml
+  when: service_action | default('status') == 'restart'
+
+- name: Include service enable tasks
+  include_tasks: enable.yml
+  when: service_action | default('status') == 'enable'
+
+- name: Include service disable tasks
+  include_tasks: disable.yml
+  when: service_action | default('status') == 'disable'
+
+# Handle multiple services if provided
+- name: Process multiple services
+  include_tasks: "{{ item }}.yml"
+  loop: "{{ service_actions }}"
+  when: service_actions is defined and service_actions | length > 0

@@ -1,0 +1,14 @@
+---
+- name: Check service status
+  command: systemctl status {{ service_name }}
+  register: service_status
+  ignore_errors: true
+
+- name: Show service status
+  debug:
+    msg: "Service status: {{ service_status.stdout_lines[0] if service_status.stdout_lines else 'Service not found' }}"
+  when: debug_mode | default(false)
+
+- name: Set service status fact
+  set_fact:
+    service_is_active: "{{ service_status.rc == 0 and 'active' in service_status.stdout }}"

@@ -1,0 +1,10 @@
+---
+- name: Start service
+  command: systemctl start {{ service_name }}
+  register: start_result
+  ignore_errors: true
+
+- name: Show start result
+  debug:
+    msg: "Start result: {{ start_result.stdout if start_result.stdout else 'No output' }}, RC: {{ start_result.rc }}"
+  when: debug_mode | default(false)

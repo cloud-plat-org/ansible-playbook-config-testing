@@ -1,0 +1,11 @@
+---
+- name: Stop SSH service on WSL instances
+  hosts: all
+  become: true
+  become_method: sudo
+  roles:
+    - service_management
+  vars:
+    service_name: "ssh"
+    service_action: "stop"
+    debug_mode: true
