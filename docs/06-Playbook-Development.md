@@ -544,7 +544,7 @@ ansible all -i inventory -m setup
 ## Next Steps
 
 Once playbooks are developed and tested, proceed to:
-- [08-Testing-Validation.md](08-Testing-Validation.md) - Job testing, expected outputs
+- [07-Testing-Validation.md](07-Testing-Validation.md) - Job testing, expected outputs
 
 ## Verification Checklist
 

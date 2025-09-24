@@ -508,7 +508,7 @@ echo "daniv ALL=(ALL) NOPASSWD: ALL" | sudo tee /etc/sudoers.d/daniv
 ## Next Steps
 
 Once AWX configuration is complete, proceed to:
-- [07-Playbook-Development.md](07-Playbook-Development.md) - Ansible playbooks
+- [06-Playbook-Development.md](06-Playbook-Development.md) - Ansible playbooks
 
 ## Verification Checklist
 

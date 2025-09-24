@@ -437,7 +437,7 @@ awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" job_template get 
 ## Next Steps
 
 Once testing is complete and all validations pass, proceed to:
-- [09-Daily-Operations.md](09-Daily-Operations.md) - Startup scripts, maintenance
+- [08-Daily-Operations.md](08-Daily-Operations.md) - Startup scripts, maintenance
 
 ## Final Verification Checklist
 
