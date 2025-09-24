@@ -160,7 +160,23 @@ awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" credential get "$
 
 ### 1. Create Job Template
 ```bash
-# Create job template
+# Create flexible service testing job template
+awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" job_template create \
+  --name "Test Service Lifecycle WSL" \
+  --project "WSL Project" \
+  --inventory "WSL Lab" \
+  --playbook "test_service_lifecycle.yml" \
+  --become_enabled true \
+  --ask_credential_on_launch false
+
+# Get job template ID
+JOB_TEMPLATE_ID=$(awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" job_template list --name "Test Service Lifecycle WSL" | jq -r '.results[0].id')
+echo "Job Template ID: $JOB_TEMPLATE_ID"
+```
+
+### 1b. Create Legacy Job Template (Optional)
+```bash
+# Create legacy job template (if you still want the old one)
 awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" job_template create \
   --name "Stop Services WSL" \
   --project "WSL Project" \
