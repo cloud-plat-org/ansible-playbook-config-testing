@@ -1,37 +1,30 @@
 ---
-- name: Stop service on target hosts
+- name: Service lifecycle management on target hosts
   hosts: all
   become: true
   become_method: sudo
-  roles:
-    - service_management
-  vars:
-    service_name: "{{ target_service | default('cron') }}"
-    service_action: "stop"
-
-- name: Wait for service shutdown
-  hosts: all
   tasks:
+    - name: "Stop {{ target_service | default('cron') }} service"
+      include_role:
+        name: service_management
+      vars:
+        service_name: "{{ target_service | default('cron') }}"
+        service_action: "stop"
+
     - name: "Pause {{ wait_time | default(10) }} seconds"
       wait_for:
         timeout: "{{ wait_time | default(10) }}"
 
-- name: Start service on target hosts
-  hosts: all
-  become: true
-  become_method: sudo
-  roles:
-    - service_management
-  vars:
-    service_name: "{{ target_service | default('cron') }}"
-    service_action: "start"
+    - name: "Start {{ target_service | default('cron') }} service"
+      include_role:
+        name: service_management
+      vars:
+        service_name: "{{ target_service | default('cron') }}"
+        service_action: "start"
 
-- name: Verify service status
-  hosts: all
-  become: true
-  become_method: sudo
-  roles:
-    - service_management
-  vars:
-    service_name: "{{ target_service | default('cron') }}"
-    service_action: "status"
+    - name: "Verify {{ target_service | default('cron') }} service status"
+      include_role:
+        name: service_management
+      vars:
+        service_name: "{{ target_service | default('cron') }}"
+        service_action: "status"
