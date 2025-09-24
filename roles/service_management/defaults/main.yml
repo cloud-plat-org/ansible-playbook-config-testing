@@ -1,24 +1,8 @@
 ---
-# Default variables for service_management role
+# Service Management Role - Default Variables
 
 # Service name (required)
 service_name: ""
 
 # Service action: status, start, stop, restart, enable, disable
 service_action: "status"
-
-# Enable debug output
-debug_mode: false
-
-# Multiple service actions (for complex operations)
-service_actions: []
-
-# Service-specific configurations
-service_configs:
-  ssh:
-    port: 22
-    config_file: "/etc/ssh/sshd_config"
-  cron:
-    config_file: "/etc/crontab"
-  systemd-resolved:
-    config_file: "/etc/systemd/resolved.conf"
