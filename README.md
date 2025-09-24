@@ -19,7 +19,7 @@ For experienced users who want to get started quickly:
 
 ## Documentation Structure
 
-### 📋 [01-Prerequisites.md](docs/01-Prerequisites.md)
+### [01-Prerequisites.md](docs/01-Prerequisites.md)
 **System Requirements, Tools & WSL Configuration**
 - Hardware requirements (RAM, CPU, storage)
 - Software prerequisites (Docker Desktop, WSL)
@@ -27,56 +27,56 @@ For experienced users who want to get started quickly:
 - WSL instance configuration (Ubuntu-24.04, Kali-Linux)
 - SSH service setup and passwordless sudo
 
-### 🏗️ [02-Infrastructure-Setup.md](docs/02-Infrastructure-Setup.md)
+### [02-Infrastructure-Setup.md](docs/02-Infrastructure-Setup.md)
 **Docker, Minikube & Tools Installation**
 - Docker Desktop startup
 - Minikube installation and configuration
 - Required tools installation
 - Network and tunnel setup
 
-### ⚙️ [03-AWX-Installation.md](docs/03-AWX-Installation.md)
+### [03-AWX-Installation.md](docs/03-AWX-Installation.md)
 **AWX Operator & Instance Deployment**
 - AWX Operator installation
 - AWX instance deployment
 - HTTPS ingress configuration
 - AWX CLI setup and testing
 
-### 🔐 [04-SSH-Authentication.md](docs/04-SSH-Authentication.md)
+### [04-SSH-Authentication.md](docs/04-SSH-Authentication.md)
 **SSH Key Authentication Setup**
 - SSH key pair generation
 - Public key deployment
 - Authentication testing
 - Key format verification
 
-### 🎯 [05-AWX-Configuration.md](docs/05-AWX-Configuration.md)
+### [05-AWX-Configuration.md](docs/05-AWX-Configuration.md)
 **AWX Projects, Inventory & Templates**
 - Project creation and Git integration
 - Inventory and host group setup
 - Host addition and configuration
 - Credential and job template creation
 
-### 📝 [06-Playbook-Development.md](docs/06-Playbook-Development.md)
+### [06-Playbook-Development.md](docs/06-Playbook-Development.md)
 **Ansible Playbook Creation**
 - Working directory setup
 - Playbook development
 - Git repository integration
 - Best practices and patterns
 
-### ✅ [07-Testing-Validation.md](docs/07-Testing-Validation.md)
+### [07-Testing-Validation.md](docs/07-Testing-Validation.md)
 **Job Testing & Validation**
 - Test job execution
 - Expected output verification
 - Troubleshooting test failures
 - Performance validation
 
-### 🔄 [08-Daily-Operations.md](docs/08-Daily-Operations.md)
+### [08-Daily-Operations.md](docs/08-Daily-Operations.md)
 **Startup Scripts & Maintenance**
 - Daily startup workflow
 - Automation scripts
 - Maintenance procedures
 - Monitoring and health checks
 
-### 🚨 [09-Troubleshooting.md](docs/09-Troubleshooting.md)
+### [09-Troubleshooting.md](docs/09-Troubleshooting.md)
 **Common Issues & Solutions**
 - Minikube connection issues
 - SSH authentication problems
@@ -132,7 +132,7 @@ The setup is completely reproducible and eliminates all interactive authenticati
 ## Getting Help
 
 If you encounter issues:
-1. Check the [Troubleshooting](docs/10-Troubleshooting.md) guide first
+1. Check the [Troubleshooting](docs/09-Troubleshooting.md) guide first
 2. Verify each phase was completed successfully
 3. Check the logs and status of all components
 4. Ensure all prerequisites are met

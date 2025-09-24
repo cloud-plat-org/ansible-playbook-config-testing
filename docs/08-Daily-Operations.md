@@ -541,7 +541,7 @@ chmod +x ~/scheduled_maintenance.sh
 ## Next Steps
 
 Once daily operations are set up, proceed to:
-- [10-Troubleshooting.md](10-Troubleshooting.md) - Common issues and solutions
+- [09-Troubleshooting.md](09-Troubleshooting.md) - Common issues and solutions
 
 ## Verification Checklist
 
