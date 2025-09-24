@@ -1,566 +1,202 @@
 # Playbook Development - Ansible Playbook Creation
 
 ## Overview
-This document covers Ansible playbook development, working directory setup, Git repository integration, and best practices for WSL automation.
+This document covers Ansible playbook development, AWX integration, Git repository management, and testing workflows for WSL automation.
 
-## Working Directory Setup
+## AWX Integration Setup
 
-### 1. Create Project Directory
+### 1. Verify AWX Project Configuration
 ```bash
-# Create project directory
-mkdir -p ~/ansible/test2
-cd ~/ansible/test2
+# Get AWX token
+export AWX_TOKEN=$(kubectl get secret awx-admin-password -n awx -o jsonpath='{.data.password}' | base64 -d)
 
-# Initialize git repository (if not already done)
-git init
-git remote add origin https://github.com/cloud-plat-org/ansible-playbook-config-testing.git
-```
-
-### 2. Verify Git Configuration
-```bash
-# Check git status
-git status
-
-# Check remote configuration
-git remote -v
+# Check project configuration
+PROJECT_ID=$(awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" project list | jq -r '.results[] | select(.name=="WSL Project") | .id')
+awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" project get "$PROJECT_ID" | jq '{name, scm_url, scm_branch, scm_update_on_launch}'
 
 # Expected output:
-# origin  https://github.com/cloud-plat-org/ansible-playbook-config-testing.git (fetch)
-# origin  https://github.com/cloud-plat-org/ansible-playbook-config-testing.git (push)
+# {
+#   "name": "WSL Project",
+#   "scm_url": "https://github.com/cloud-plat-org/ansible-playbook-config-testing.git",
+#   "scm_branch": "CLPLAT-2223",
+#   "scm_update_on_launch": true
+# }
+```
+
+### 2. Verify Test Environment
+```bash
+# Check inventory and hosts
+UBUNTU_HOST_ID=$(awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" host list --name "wslubuntu1" | jq -r '.results[0].id')
+KALI_HOST_ID=$(awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" host list --name "wslkali1" | jq -r '.results[0].id')
+
+# Get full host details including variables
+awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" host get "$UBUNTU_HOST_ID" | jq '.variables'
+awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" host get "$KALI_HOST_ID" | jq '.variables'
+
+# Expected output (if variables are properly set):
+# "{\"ansible_host\": \"172.22.192.129\", \"ansible_port\": 2223}"
+# "{\"ansible_host\": \"172.22.192.129\", \"ansible_port\": 2224}"
 ```
 
 ## Playbook Development
 
-### 1. Create Final Working Playbook
+### 1. Current Working Playbook Structure
+Our current setup uses a role-based approach with the `service_management` role. The `test_service_lifecycle.yml` playbook is already created and working.
+
+**Key Features:**
+- **Flexible Service Testing**: Uses `target_service` variable to test any service
+- **Role-Based Architecture**: Leverages the `service_management` role for reusability
+- **Safe Defaults**: Defaults to `cron` service (won't break SSH connectivity)
+- **Complete Lifecycle**: Stop → Wait → Start → Verify
+
+### 2. Making Changes to Existing Playbooks
 ```bash
-cat > test_service_lifecycle.yml << 'EOF'
----
-- name: Stop services on WSL instances
-  hosts: all
-  become: true
-  become_method: sudo
-  become_user: daniv
-  tasks:
-    - name: Debug - Show basic info
-      debug:
-        msg: "Host: {{ inventory_hostname }}\nUser: {{ ansible_user }}\nService: {{ service_name }}"
+# Edit the existing playbook
+vim test_service_lifecycle.yml
 
-    - name: Test sudo access
-      command: whoami
-      register: whoami_result
+# Test syntax after changes
+ansible-playbook --syntax-check test_service_lifecycle.yml
 
-    - name: Show whoami result
-      debug:
-        msg: "Running as: {{ whoami_result.stdout }}"
-
-    - name: Check service status before stop
-      command: systemctl status {{ service_name }}
-      register: status_before
-      ignore_errors: true
-
-    - name: Show service status before stop
-      debug:
-        msg: "Service status before: {{ status_before.stdout_lines[0] if status_before.stdout_lines else 'Service not found' }}"
-
-    - name: Stop service using systemctl command
-      command: systemctl stop {{ service_name }}
-      register: stop_result
-      ignore_errors: true
-
-    - name: Show stop result
-      debug:
-        msg: "Stop result: {{ stop_result.stdout if stop_result.stdout else 'No output' }}, RC: {{ stop_result.rc }}"
-
-    - name: Check service status after stop
-      command: systemctl status {{ service_name }}
-      register: status_after
-      ignore_errors: true
-
-    - name: Show final status
-      debug:
-        msg: "Final status: {{ status_after.stdout_lines[0] if status_after.stdout_lines else 'Service not found' }}"
-
-    - name: Test additional services (if service_name is ssh)
-      block:
-        - name: Stop cron service
-          command: systemctl stop cron
-          register: cron_result
-          ignore_errors: true
-
-        - name: Stop systemd-resolved service
-          command: systemctl stop systemd-resolved
-          register: resolved_result
-          ignore_errors: true
-
-        - name: Show additional service results
-          debug:
-            msg: "Cron stop: {{ cron_result.rc }}, Resolved stop: {{ resolved_result.rc }}"
-      when: service_name == "ssh"
-EOF
+# Sync AWX project to get latest changes
+awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" project update "WSL Project"
 ```
 
-### 2. Create Additional Playbooks
+## Git Workflow for Playbook Development
+
+### 1. Development Process
 ```bash
-# Create a simple test playbook
-cat > test_connection.yml << 'EOF'
----
-- name: Test connection to WSL instances
-  hosts: all
-  become: true
-  become_method: sudo
-  become_user: daniv
-  tasks:
-    - name: Test basic connectivity
-      ping:
+# 1. Create/update playbook locally
+vim test_service_lifecycle.yml
 
-    - name: Show system information
-      debug:
-        msg: "Host: {{ inventory_hostname }}, OS: {{ ansible_distribution }} {{ ansible_distribution_version }}"
+# 2. Test syntax
+ansible-playbook --syntax-check test_service_lifecycle.yml
 
-    - name: Show current user
-      command: whoami
-      register: current_user
+# 3. Commit changes
+git add test_service_lifecycle.yml
+git commit -m "Update service lifecycle playbook"
 
-    - name: Display current user
-      debug:
-        msg: "Current user: {{ current_user.stdout }}"
+# 4. Push to GitHub (AWX pulls from CLPLAT-2223 branch)
+git push origin CLPLAT-2223
 
-    - name: Show system uptime
-      command: uptime
-      register: uptime_result
-
-    - name: Display uptime
-      debug:
-        msg: "System uptime: {{ uptime_result.stdout }}"
-EOF
-
-# Create a service management playbook
-cat > manage_services.yml << 'EOF'
----
-- name: Manage services on WSL instances
-  hosts: all
-  become: true
-  become_method: sudo
-  become_user: daniv
-  vars:
-    service_state: "{{ service_action | default('status') }}"
-  tasks:
-    - name: Show service information
-      debug:
-        msg: "Managing service: {{ service_name }}, Action: {{ service_state }}"
-
-    - name: Check service status
-      command: systemctl status {{ service_name }}
-      register: service_status
-      ignore_errors: true
-
-    - name: Show service status
-      debug:
-        msg: "Service status: {{ service_status.stdout_lines[0] if service_status.stdout_lines else 'Service not found' }}"
-
-    - name: Start service
-      command: systemctl start {{ service_name }}
-      when: service_state == "start"
-      ignore_errors: true
-
-    - name: Stop service
-      command: systemctl stop {{ service_name }}
-      when: service_state == "stop"
-      ignore_errors: true
-
-    - name: Restart service
-      command: systemctl restart {{ service_name }}
-      when: service_state == "restart"
-      ignore_errors: true
-
-    - name: Enable service
-      command: systemctl enable {{ service_name }}
-      when: service_state == "enable"
-      ignore_errors: true
-
-    - name: Disable service
-      command: systemctl disable {{ service_name }}
-      when: service_state == "disable"
-      ignore_errors: true
-EOF
+# 5. Sync AWX project to get latest changes
+awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" project update "WSL Project"
 ```
 
-## Git Repository Integration
-
-### 1. Commit and Push Playbooks
+### 2. Testing New Playbooks
 ```bash
-# Add all playbooks to git
-git add *.yml
+# Test with different services
+JOB_ID=$(awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" job_template launch \
+  --job_template "Test Service Lifecycle WSL" --extra_vars '{"target_service": "systemd-resolved"}' | jq -r .id)
 
-# Commit changes
-git commit -m "Add working playbooks for WSL automation"
-
-# Push to repository
-git push origin CLPLAT-2221
+# Monitor execution
+awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" job get "$JOB_ID" | jq '{id, status, started, finished}'
+awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" job stdout "$JOB_ID"
 ```
 
-### 2. Verify Git Integration
+## Development Tools
+
+### 1. Ansible Lint (Already Configured)
 ```bash
-# Check git status
-git status
-
-# Check commit history
-git log --oneline -5
-
-# Verify remote tracking
-git branch -vv
-```
-
-## Playbook Best Practices
-
-### 1. Error Handling
-```yaml
-# Always use ignore_errors for potentially failing tasks
-- name: Stop service
-  command: systemctl stop {{ service_name }}
-  ignore_errors: true
-  register: stop_result
-
-# Check results and handle errors
-- name: Check stop result
-  debug:
-    msg: "Stop result: {{ stop_result.rc }}"
-  when: stop_result.rc != 0
-```
-
-### 2. Variable Usage
-```yaml
-# Use variables for flexibility
-vars:
-  service_name: "{{ service_name | default('ssh') }}"
-  service_action: "{{ service_action | default('status') }}"
-
-# Use facts for system information
-- name: Show system info
-  debug:
-    msg: "OS: {{ ansible_distribution }} {{ ansible_distribution_version }}"
-```
-
-### 3. Conditional Execution
-```yaml
-# Use when conditions for conditional tasks
-- name: Stop additional services
-  block:
-    - name: Stop cron
-      command: systemctl stop cron
-  when: service_name == "ssh"
-```
-
-### 4. Block Organization
-```yaml
-# Use blocks for logical grouping
-- name: Service management tasks
-  block:
-    - name: Check status
-      command: systemctl status {{ service_name }}
-    - name: Stop service
-      command: systemctl stop {{ service_name }}
-  rescue:
-    - name: Handle errors
-      debug:
-        msg: "Service management failed"
-```
-
-## Development Tools Setup
-
-### 1. Ansible Lint Installation
-```bash
-# Install python3-venv (if not already installed)
-sudo apt install python3-venv
-
-# Create dedicated virtual environment for ansible-lint
-python3 -m venv ~/.venvs/ansible
-
-# Activate virtual environment
-source ~/.venvs/ansible/bin/activate
-
-# Install ansible-lint
-pip install ansible-lint
-
-# Verify installation
+# Check if ansible-lint is available
 ansible-lint --version
-```
 
-### 2. Configure Ansible Lint
-```bash
-# Create ansible-lint configuration file
-# Create project-specific ansible-lint configuration for CI/CD
-cat > .ansible-lint << 'EOF'
-# Ansible Lint Configuration for CI/CD
-skip_list:
-  - yaml[line-length]  # Allow longer lines for readability
-  - name[casing]      # Allow different naming conventions
-  - risky-file-permissions  # Allow specific file permissions
-
-exclude_paths:
-  - .cache/
-  - .github/
-  - .git/
-  - .tox/
-  - .venv/
-  - venv/
-
-verbosity: 1
-EOF
-
-# Set up environment variable for cache
-echo 'export ANSIBLE_CACHE_PLUGIN_CONNECTION=$(pwd)/.ansible' >> ~/.bashrc
-source ~/.bashrc
-```
-
-### 3. Using Ansible Lint
-```bash
-# Activate ansible-lint environment
-source ~/.venvs/ansible/bin/activate
-
-# Lint a single playbook
+# Lint current playbook
 ansible-lint test_service_lifecycle.yml
 
-# Lint all playbooks in directory
-ansible-lint .
-
-# Lint with verbose output
-ansible-lint -v test_service_lifecycle.yml
-
-# Lint and fix common issues automatically
-ansible-lint --fix test_service_lifecycle.yml
-```
-
-### 4. IDE Integration
-```bash
-# For VS Code, create .vscode/settings.json
-mkdir -p .vscode
-cat > .vscode/settings.json << 'EOF'
-{
-    "ansible.ansibleLint.enabled": true,
-    "ansible.ansibleLint.path": "~/.venvs/ansible/bin/ansible-lint",
-    "ansible.validation.enabled": true,
-    "ansible.python.interpreterPath": "~/.venvs/ansible/bin/python"
-}
-EOF
-
-# For Vim/Neovim, add to ~/.vimrc or ~/.config/nvim/init.vim
-echo '" Ansible Lint integration' >> ~/.vimrc
-echo 'let g:ale_linters = {"yaml": ["ansible-lint"]}' >> ~/.vimrc
-echo 'let g:ale_yaml_ansible_lint_options = "--offline"' >> ~/.vimrc
-```
-
-### 5. Pre-commit Hooks (Optional)
-```bash
-# Install pre-commit
-pip install pre-commit
-
-# Create .pre-commit-config.yaml
-cat > .pre-commit-config.yaml << 'EOF'
-repos:
-  - repo: https://github.com/ansible/ansible-lint
-    rev: v6.17.2
-    hooks:
-      - id: ansible-lint
-        args: [--fix]
-  - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.4.0
-    hooks:
-      - id: trailing-whitespace
-      - id: end-of-file-fixer
-      - id: check-yaml
-EOF
-
-# Install pre-commit hooks
-pre-commit install
-```
-
-### 6. Common Ansible Lint Rules
-```bash
-# Check specific rules
-ansible-lint --list-rules
-
-# Skip specific rules
+# Lint with specific rules
 ansible-lint --skip-list yaml[line-length],name[casing] test_service_lifecycle.yml
-
-# Show only errors
-ansible-lint --quiet test_service_lifecycle.yml
-
-# Generate detailed report
-ansible-lint --progressive test_service_lifecycle.yml
 ```
 
-## Testing Playbooks
-
-### 1. Syntax Validation
+### 2. Syntax Validation
 ```bash
 # Check playbook syntax
 ansible-playbook --syntax-check test_service_lifecycle.yml
-ansible-playbook --syntax-check test_connection.yml
-ansible-playbook --syntax-check manage_services.yml
+
+# Validate role syntax
+ansible-playbook --syntax-check roles/service_management/tasks/main.yml
 ```
 
-### 2. Dry Run Testing
-```bash
-# Test playbook without executing
-ansible-playbook --check --diff test_service_lifecycle.yml -i "172.22.192.129:2223,172.22.192.129:2224" -e "service_name=ssh"
+## Best Practices
+
+### 1. Variable Usage
+```yaml
+# Use flexible variables with defaults
+vars:
+  service_name: "{{ target_service | default('cron') }}"
+  service_action: "{{ action | default('status') }}"
+  debug_mode: "{{ debug | default(false) }}"
 ```
 
-### 3. Local Testing
-```bash
-# Test with local inventory
-cat > local_inventory << 'EOF'
-[all_servers]
-wslubuntu1 ansible_host=172.22.192.129 ansible_port=2223
-wslkali1 ansible_host=172.22.192.129 ansible_port=2224
+### 2. Error Handling
+```yaml
+# Always handle potential failures
+- name: Stop service
+  command: systemctl stop {{ service_name }}
+  register: stop_result
+  ignore_errors: true
 
-[all_servers:vars]
-ansible_user=daniv
-ansible_ssh_private_key_file=~/.ssh/awx_wsl_key_traditional
-ansible_ssh_common_args='-o StrictHostKeyChecking=no'
-EOF
-
-# Test playbook locally
-ansible-playbook test_connection.yml -i local_inventory
+- name: Show result
+  debug:
+    msg: "Stop result: RC {{ stop_result.rc }}"
 ```
 
-## Playbook Documentation
-
-### 1. Create README
-```bash
-cat > README.md << 'EOF'
-# WSL Automation Playbooks
-
-This repository contains Ansible playbooks for automating WSL instances.
-
-## Playbooks
-
-### test_service_lifecycle.yml
-Stops specified services on WSL instances.
-
-**Variables:**
-- `service_name`: Name of the service to stop (default: ssh)
-
-**Usage:**
-```bash
-ansible-playbook test_service_lifecycle.yml -e "service_name=ssh"
+### 3. Role Organization
+```yaml
+# Use roles for reusable functionality
+roles:
+  - service_management
+vars:
+  service_name: "{{ target_service }}"
+  service_action: "stop"
 ```
 
-### test_connection.yml
-Tests basic connectivity and shows system information.
-
-**Usage:**
-```bash
-ansible-playbook test_connection.yml
-```
-
-### manage_services.yml
-Manages services on WSL instances (start, stop, restart, enable, disable).
-
-**Variables:**
-- `service_name`: Name of the service to manage
-- `service_action`: Action to perform (start, stop, restart, enable, disable, status)
-
-**Usage:**
-```bash
-ansible-playbook manage_services.yml -e "service_name=ssh service_action=stop"
-```
-
-## Requirements
-
-- Ansible 2.9+
-- SSH key authentication configured
-- Passwordless sudo configured on target hosts
-EOF
-```
-
-### 2. Create Requirements File
-```bash
-cat > requirements.yml << 'EOF'
-# Ansible requirements file
-# Add any required Ansible collections or roles here
-
-# Example:
-# - name: community.general
-#   version: ">=1.0.0"
-EOF
-```
-
-## Version Control Best Practices
-
-### 1. Git Workflow
-```bash
-# Create feature branch for new playbooks
-git checkout -b feature/new-playbook
-
-# Make changes and commit
-git add new_playbook.yml
-git commit -m "Add new playbook for service management"
-
-# Push feature branch
-git push origin feature/new-playbook
-
-# Create pull request for review
-```
-
-### 2. Tagging Releases
-```bash
-# Tag stable versions
-git tag -a v1.0.0 -m "Initial stable release"
-git push origin v1.0.0
-```
-
-## Troubleshooting Playbook Issues
+## Troubleshooting Development Issues
 
 ### Common Problems
+
+#### Playbook Not Found in AWX
+```bash
+# Error: "Playbook not found for project"
+# Solution: Push to GitHub and sync AWX project
+
+git add test_service_lifecycle.yml
+git commit -m "Add new playbook"
+git push origin CLPLAT-2223
+
+# Then sync AWX project
+awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" project update "WSL Project"
+```
 
 #### Syntax Errors
 ```bash
 # Check playbook syntax
-ansible-playbook --syntax-check playbook.yml
+ansible-playbook --syntax-check test_service_lifecycle.yml
 
-# Use YAML linter
-yamllint playbook.yml
+# Check role syntax
+ansible-playbook --syntax-check roles/service_management/tasks/main.yml
 ```
 
-#### Variable Issues
+#### Job Execution Failures
 ```bash
-# Debug variables
-ansible-playbook playbook.yml --extra-vars "debug_mode=true" -vvv
-
-# Check variable precedence
-ansible-playbook playbook.yml --list-hosts
+# Check job status and output
+awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" job get "$JOB_ID" | jq '{id, status, finished}'
+awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" job stdout "$JOB_ID"
 ```
-
-#### Connection Issues
-```bash
-# Test connectivity
-ansible all -i inventory -m ping
-
-# Check SSH connection
-ansible all -i inventory -m setup
-```
-
-## Next Steps
-
-Once playbooks are developed and tested, proceed to:
-- [07-Testing-Validation.md](07-Testing-Validation.md) - Job testing, expected outputs
 
 ## Verification Checklist
 
 Before proceeding to testing, verify:
 
-- [ ] All playbooks are created and syntactically correct
-- [ ] Ansible-lint is installed and configured
-- [ ] Playbooks pass ansible-lint validation
-- [ ] IDE integration is set up (if using VS Code/Vim)
-- [ ] Pre-commit hooks are installed (optional)
-- [ ] Playbooks are committed to Git repository
-- [ ] Git integration is working properly
-- [ ] Playbooks follow best practices
+- [ ] AWX project is configured with correct repository and branch (CLPLAT-2223)
+- [ ] Test inventory contains both WSL instances (wslubuntu1, wslkali1)
+- [ ] SSH credentials are properly configured in AWX
+- [ ] Current playbook (`test_service_lifecycle.yml`) is syntactically correct
+- [ ] Service management role is properly structured
+- [ ] Playbook uses flexible variables (`target_service`)
+- [ ] Git repository is properly configured
+- [ ] Changes are committed and pushed to GitHub
+- [ ] AWX project sync is working
+- [ ] Job template can be created successfully
+- [ ] Playbook follows role-based best practices
 - [ ] Error handling is implemented
-- [ ] Variables are properly defined
-- [ ] Documentation is created
-- [ ] Local testing is successful
-- [ ] No syntax errors or warnings
-- [ ] Playbooks are ready for AWX execution
+- [ ] Documentation is up to date

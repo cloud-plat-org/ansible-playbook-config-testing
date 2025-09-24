@@ -249,6 +249,10 @@ jq -r '.results[] | [.name, .status, .last_job_run, .last_job_failed] | @tsv'
 
 ### 2. Job Template Management
 ```bash
+# Get job template ID (if not already set)
+JOB_TEMPLATE_ID=$(awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" job_template list --name "Test Service Lifecycle WSL" | jq -r '.results[0].id')
+echo "Job Template ID: $JOB_TEMPLATE_ID"
+
 # List job templates
 awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" job_template list
 
@@ -286,7 +290,7 @@ awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" job list
 ### 3. AWX Version Considerations
 ```bash
 # Check AWX version
-awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" me | jq '.version'
+kubectl get pods -n awx -o jsonpath='{.items[0].spec.containers[0].image}'
 
 # Note: AWX CLI limitations in version 24.6.1
 # - No direct group associate command
@@ -332,16 +336,25 @@ awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" project get "$PRO
 
 #### Project Sync Failures
 ```bash
-# Check project sync logs
-awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" project get "$PROJECT_ID" | jq '.last_job_run'
+# Check project sync status
+awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" project get "$PROJECT_ID" | jq '{name, status, last_job_run}'
 
-# Get job details
-JOB_ID=$(awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" project get "$PROJECT_ID" | jq -r '.last_job_run')
-awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" job stdout "$JOB_ID"
+# Get latest project update job ID (not timestamp)
+PROJECT_UPDATE_ID=$(awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" project_update list --project "$PROJECT_ID" | jq -r '.results[0].id')
+echo "Project Update ID: $PROJECT_UPDATE_ID"
+
+# Get project update job output
+awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" project_update stdout "$PROJECT_UPDATE_ID"
 ```
 
 #### Host Connection Issues
 ```bash
+# Get host IDs
+UBUNTU_HOST_ID=$(awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" host list --name "wslubuntu1" | jq -r '.results[0].id')
+KALI_HOST_ID=$(awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" host list --name "wslkali1" | jq -r '.results[0].id')
+echo "Ubuntu Host ID: $UBUNTU_HOST_ID"
+echo "Kali Host ID: $KALI_HOST_ID"
+
 # Test host connectivity
 awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" host get "$UBUNTU_HOST_ID" | jq '.variables'
 awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" host get "$KALI_HOST_ID" | jq '.variables'
@@ -351,10 +364,14 @@ awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" host get "$KALI_H
 
 #### Credential Issues
 ```bash
-# Check credential format
-awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" credential get "$CRED_ID" | jq '.inputs.ssh_key_data' | head -1
+# Get credential ID
+CRED_ID=$(awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" credential list --name "WSL SSH Key" | jq -r '.results[0].id')
+echo "Credential ID: $CRED_ID"
 
-# Should show: "-----BEGIN RSA PRIVATE KEY-----"
+# Check credential format
+awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" credential get "$CRED_ID" | jq -r '.inputs.ssh_key_data' | head -1
+
+# Should show: $encrypted$ (AWX encrypts SSH keys for security)
 ```
 
 #### Job Template Issues
@@ -458,6 +475,7 @@ awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" host get --name w
 awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" host get --name wslkali1 | jq '.variables'
 
 # Update host variables (clean format)
+HOST_ID=$(awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" host list --name "wslubuntu1" | jq -r '.results[0].id')
 awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" host modify "$HOST_ID" --variables '{"ansible_host": "172.22.192.129", "ansible_port": 2223}'
 
 # Delete host (if needed)

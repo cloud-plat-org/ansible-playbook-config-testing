@@ -1,5 +1,5 @@
 ---
-- name: Test service stop/start cycle on WSL instances
+- name: Stop service on target hosts
   hosts: all
   become: true
   become_method: sudo
@@ -8,15 +8,15 @@
   vars:
     service_name: "{{ target_service | default('cron') }}"
     service_action: "stop"
-    debug_mode: true
 
-- name: Wait 10 seconds
+- name: Wait for service shutdown
   hosts: all
   tasks:
-    - wait_for:
-        timeout: 10
+    - name: "Pause {{ wait_time | default(10) }} seconds"
+      wait_for:
+        timeout: "{{ wait_time | default(10) }}"
 
-- name: Start service
+- name: Start service on target hosts
   hosts: all
   become: true
   become_method: sudo
@@ -25,9 +25,8 @@
   vars:
     service_name: "{{ target_service | default('cron') }}"
     service_action: "start"
-    debug_mode: true
 
-- name: Verify service is running
+- name: Verify service status
   hosts: all
   become: true
   become_method: sudo
@@ -36,4 +35,3 @@
   vars:
     service_name: "{{ target_service | default('cron') }}"
     service_action: "status"
-    debug_mode: true
