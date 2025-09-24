@@ -49,39 +49,62 @@ export AWX_TOKEN=$(kubectl get secret awx-admin-password -n awx -o jsonpath='{.d
 
 # Launch AWX job
 JOB_ID=$(awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" job_template launch \
-  --job_template "Stop Services WSL" --extra_vars '{"service_name": "ssh"}' | jq -r .id)
+  --job_template "Test Service Lifecycle WSL" --extra_vars '{"target_service": "cron"}' | jq -r .id)
 
 echo "Job ID: $JOB_ID"
 ```
 
-### 2. Launch Job Without Extra Variables
+### 2. Test Different Services
+
 ```bash
-# Launch job without extra variables (uses default service_name)
+# Test cron service (safe - won't break SSH)
 JOB_ID=$(awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" job_template launch \
-  --job_template "Stop Services WSL" | jq -r .id)
+  --job_template "Test Service Lifecycle WSL" --extra_vars '{"target_service": "cron"}' | jq -r .id)
 
-echo "Job ID: $JOB_ID"
-```
-
-### 3. Launch Job with Different Service
-```bash
-# Launch job with different service
+# Test systemd-resolved service
 JOB_ID=$(awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" job_template launch \
-  --job_template "Stop Services WSL" --extra_vars '{"service_name": "cron"}' | jq -r .id)
+  --job_template "Test Service Lifecycle WSL" --extra_vars '{"target_service": "systemd-resolved"}' | jq -r .id)
 
-echo "Job ID: $JOB_ID"
+# Test networkd service
+JOB_ID=$(awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" job_template launch \
+  --job_template "Test Service Lifecycle WSL" --extra_vars '{"target_service": "systemd-networkd"}' | jq -r .id)
 
-# Job output 
-awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" job stdout "$JOB_ID"
+# Test with default service (cron) - no extra_vars needed
+JOB_ID=$(awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" job_template launch \
+  --job_template "Test Service Lifecycle WSL" | jq -r .id)
 ```
 
-### 4. Monitor Job Execution
+### 3. Launch Job Without Extra Variables
 ```bash
-# Monitor job status
+# Launch job without extra variables (uses default service_name: cron)
+JOB_ID=$(awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" job_template launch \
+  --job_template "Test Service Lifecycle WSL" | jq -r .id)
+
+echo "Job ID: $JOB_ID"
+```
+
+### 4. Monitor Job Progress
+```bash
+# Check job status
 awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" job get "$JOB_ID" | jq '{id, status, started, finished}'
 
 # Get job output
 awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" job stdout "$JOB_ID"
+```
+
+## **Service Testing Examples**
+
+### Safe Services to Test:
+- **`cron`** - Safe, won't break connectivity
+- **`systemd-resolved`** - DNS resolution service
+- **`systemd-networkd`** - Network management
+- **`rsyslog`** - Logging service
+- **`cups`** - Print service (if installed)
+
+### Services to Avoid:
+- **`ssh`** - Will break AWX connectivity
+- **`systemd-logind`** - Core login service
+- **`dbus`** - System message bus
 
 # List all jobs
 awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" job list
