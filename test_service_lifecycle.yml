@@ -12,8 +12,9 @@
 
 - name: Wait 10 seconds
   hosts: all
-  wait_for:
-    timeout: 10
+  tasks:
+    - wait_for:
+        timeout: 10
 
 - name: Start service
   hosts: all
