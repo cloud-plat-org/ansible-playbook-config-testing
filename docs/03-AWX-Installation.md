@@ -209,7 +209,7 @@ awx --conf.host https://localhost -k --conf.username admin --conf.password "YOUR
 ### 3. Alternative: Create Token in Web UI
 1. Access AWX Web UI: https://localhost
 2. Login with your credentials
-3. Go to User Menu → Tokens
+3. Go to User Menu -> Tokens
 4. Create new token and copy it
 5. Use the token:
 ```bash

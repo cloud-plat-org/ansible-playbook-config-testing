@@ -143,18 +143,18 @@ echo "=== AWX Status Check ==="
 # Check Docker
 echo "1. Docker Status:"
 if docker ps >/dev/null 2>&1; then
-    echo "   ✓ Docker is running"
+    echo "   [OK] Docker is running"
 else
-    echo "   ✗ Docker is not running"
+    echo "   [ERROR] Docker is not running"
 fi
 
 # Check Minikube
 echo "2. Minikube Status:"
 if minikube status >/dev/null 2>&1; then
-    echo "   ✓ Minikube is running"
+    echo "   [OK] Minikube is running"
     minikube status | grep -E "(host|kubelet|apiserver)"
 else
-    echo "   ✗ Minikube is not running"
+    echo "   [ERROR] Minikube is not running"
 fi
 
 # Check AWX pods
@@ -162,7 +162,7 @@ echo "3. AWX Pods Status:"
 if kubectl get pods -n awx >/dev/null 2>&1; then
     kubectl get pods -n awx | grep -E "(Running|Completed|Error)"
 else
-    echo "   ✗ Cannot access AWX pods"
+    echo "   [ERROR] Cannot access AWX pods"
 fi
 
 # Check AWX services
@@ -170,7 +170,7 @@ echo "4. AWX Services Status:"
 if kubectl get svc -n awx >/dev/null 2>&1; then
     kubectl get svc -n awx
 else
-    echo "   ✗ Cannot access AWX services"
+    echo "   [ERROR] Cannot access AWX services"
 fi
 
 # Check AWX access
@@ -179,12 +179,12 @@ if [ -f ~/awx-venv/bin/activate ]; then
     source ~/awx-venv/bin/activate
     export AWX_TOKEN=$(kubectl get secret awx-admin-password -n awx -o jsonpath='{.data.password}' | base64 -d 2>/dev/null)
     if awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" me >/dev/null 2>&1; then
-        echo "   ✓ AWX CLI access working"
+        echo "   [OK] AWX CLI access working"
     else
-        echo "   ✗ AWX CLI access failed"
+        echo "   [ERROR] AWX CLI access failed"
     fi
 else
-    echo "   ✗ AWX virtual environment not found"
+    echo "   [ERROR] AWX virtual environment not found"
 fi
 
 echo "=== Status Check Complete ==="

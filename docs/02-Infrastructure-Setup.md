@@ -28,7 +28,7 @@ docker ps
 ### 3. Docker Desktop Configuration
 Ensure Docker Desktop is configured for WSL2:
 - Open Docker Desktop settings
-- Go to "Resources" → "WSL Integration"
+- Go to "Resources" -> "WSL Integration"
 - Enable integration with Ubuntu-22.04
 - Apply & Restart
 
@@ -260,7 +260,7 @@ minikube start
 
 ### 2. Docker Resource Settings
 - Open Docker Desktop settings
-- Go to "Resources" → "Advanced"
+- Go to "Resources" -> "Advanced"
 - Increase Memory to 8GB+ (if available)
 - Increase CPUs to 4+ (if available)
 

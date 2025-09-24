@@ -182,10 +182,10 @@ changed: [wslubuntu1]
 
 TASK [Show service status before stop] ***********************************
 ok: [wslkali1] => {
-    "msg": "Service status before: ● ssh.service - OpenBSD Secure Shell server"
+    "msg": "Service status before: * ssh.service - OpenBSD Secure Shell server"
 }
 ok: [wslubuntu1] => {
-    "msg": "Service status before: ● ssh.service - OpenBSD Secure Shell server"
+    "msg": "Service status before: * ssh.service - OpenBSD Secure Shell server"
 }
 
 TASK [Stop service using systemctl command] *******************************
@@ -206,10 +206,10 @@ changed: [wslubuntu1]
 
 TASK [Show final status] **************************************************
 ok: [wslkali1] => {
-    "msg": "Final status: ○ ssh.service - OpenBSD Secure Shell server"
+    "msg": "Final status: o ssh.service - OpenBSD Secure Shell server"
 }
 ok: [wslubuntu1] => {
-    "msg": "Final status: ○ ssh.service - OpenBSD Secure Shell server"
+    "msg": "Final status: o ssh.service - OpenBSD Secure Shell server"
 }
 
 TASK [Test additional services (if service_name is ssh)] ******************

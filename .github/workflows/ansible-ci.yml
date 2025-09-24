@@ -122,6 +122,6 @@ jobs:
     
     - name: Run security-focused linting
       run: |
-        echo "🔒 Running security-focused Ansible Lint..."
+        echo "Running security-focused Ansible Lint..."
         ansible-lint . --exclude docs/ --exclude .github/ --profile production --skip-list yaml[line-length]
 
