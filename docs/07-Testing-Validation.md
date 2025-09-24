@@ -92,6 +92,39 @@ awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" job get "$JOB_ID"
 awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" job stdout "$JOB_ID"
 ```
 
+## **Complete CLI Workflow**
+
+### Prerequisites Check
+```bash
+# 1. Verify AWX is running
+kubectl get pods -n awx | grep awx-web
+
+# 2. Check WSL instances are running
+wsl --list --verbose
+
+# 3. Test SSH connectivity
+ssh -p 2223 daniv@172.22.192.129  # Ubuntu-24.04
+ssh -p 2224 daniv@172.22.192.129  # kali-linux
+```
+
+### Setup New Job Template (One-time)
+```bash
+# 1. Create job template (AWX will pull from CLPLAT-2223 branch automatically)
+export AWX_TOKEN=$(kubectl get secret awx-admin-password -n awx -o jsonpath='{.data.password}' | base64 -d)
+
+awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" job_template create \
+  --name "Test Service Lifecycle WSL" \
+  --project "WSL Project" \
+  --inventory "WSL Lab" \
+  --playbook "test_service_lifecycle.yml" \
+  --become_enabled true \
+  --ask_credential_on_launch false
+
+# 2. Associate SSH credential
+JOB_TEMPLATE_ID=$(awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" job_template list --name "Test Service Lifecycle WSL" | jq -r '.results[0].id')
+awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" job_template associate --credential "$CRED_ID" "$JOB_TEMPLATE_ID"
+```
+
 ## **Service Testing Examples**
 
 ### Safe Services to Test:
@@ -105,10 +138,6 @@ awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" job stdout "$JOB_
 - **`ssh`** - Will break AWX connectivity
 - **`systemd-logind`** - Core login service
 - **`dbus`** - System message bus
-
-# List all jobs
-awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" job list
-```
 
 ### 5. Test Different Services
 ```bash

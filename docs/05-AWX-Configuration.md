@@ -174,22 +174,6 @@ JOB_TEMPLATE_ID=$(awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN"
 echo "Job Template ID: $JOB_TEMPLATE_ID"
 ```
 
-### 1b. Create Legacy Job Template (Optional)
-```bash
-# Create legacy job template (if you still want the old one)
-awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" job_template create \
-  --name "Stop Services WSL" \
-  --project "WSL Project" \
-  --inventory "WSL Lab" \
-  --playbook "stop_services.yml" \
-  --become_enabled true \
-  --ask_credential_on_launch false
-
-# Get job template ID
-JOB_TEMPLATE_ID=$(awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" job_template list --name "Stop Services WSL" | jq -r '.results[0].id')
-echo "Job Template ID: $JOB_TEMPLATE_ID"
-```
-
 ### 2. Associate SSH Key Credential
 ```bash
 # Method 1: Associate credential using credential ID
