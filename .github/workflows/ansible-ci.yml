@@ -46,10 +46,10 @@ jobs:
     
     - name: Run Ansible Lint
       run: |
-        echo "🔍 Ansible Lint version:"
+        echo "Ansible Lint version:"
         ansible-lint --version
         echo ""
-        echo "📋 Running Ansible Lint on playbooks (excluding Kubernetes manifests)..."
+        echo "Running Ansible Lint on playbooks (excluding Kubernetes manifests)..."
         ansible-lint . --exclude docs/ --exclude .github/ -v
     
     - name: Upload lint results
@@ -91,17 +91,17 @@ jobs:
     - name: Run Ansible Syntax Check
       if: steps.find-playbooks.outputs.playbooks_count > 0
       run: |
-        echo "🔍 Checking syntax for playbooks..."
+        echo "Checking syntax for playbooks..."
         while IFS= read -r playbook; do
           echo "Checking: $playbook"
           ansible-playbook --syntax-check "$playbook" || exit 1
         done < ${{ steps.find-playbooks.outputs.playbooks_file }}
-        echo "✅ All playbooks passed syntax check"
+        echo "All playbooks passed syntax check"
     
     - name: No playbooks found
       if: steps.find-playbooks.outputs.playbooks_count == 0
       run: |
-        echo "ℹ️ No Ansible playbooks found to check"
+        echo "No Ansible playbooks found to check"
 
   security-scan:
     name: Ansible Security Scan
@@ -124,3 +124,4 @@ jobs:
       run: |
         echo "🔒 Running security-focused Ansible Lint..."
         ansible-lint . --exclude docs/ --exclude .github/ --profile production --skip-list yaml[line-length]
+
