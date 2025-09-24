@@ -209,7 +209,7 @@ awx --conf.host https://localhost -k --conf.username admin --conf.password "YOUR
 ### 3. Alternative: Create Token in Web UI
 1. Access AWX Web UI: https://localhost
 2. Login with your credentials
-3. Go to User Menu → Tokens
+3. Go to User Menu -> Tokens
 4. Create new token and copy it
 5. Use the token:
 ```bash
@@ -333,11 +333,11 @@ kubectl exec -n awx awx-postgres-15-0 -- psql -U awx -c "SELECT * FROM pg_stat_a
 ## Next Steps
 
 Once AWX is properly installed and accessible, proceed to:
-- [04-WSL-Configuration.md](04-WSL-Configuration.md) - Target WSL instances setup
+- [04-SSH-Authentication.md](04-SSH-Authentication.md) - SSH keys, credential setup
 
 ## Verification Checklist
 
-Before proceeding to WSL configuration, verify:
+Before proceeding to SSH authentication, verify:
 
 - [ ] AWX Operator is deployed and running
 - [ ] AWX instance pods are all Running

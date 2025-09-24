@@ -50,7 +50,7 @@ minikube delete
 minikube start --driver=docker --cpus=4 --memory=8g --addons=ingress
 
 # 4. Check Docker resources
-# Open Docker Desktop settings → Resources → Advanced
+# Open Docker Desktop settings -> Resources -> Advanced
 # Increase Memory to 8GB+, CPUs to 4+
 ```
 
@@ -554,7 +554,7 @@ awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" me
 awx --conf.host https://localhost -k --conf.username admin --conf.password "YOUR_PASSWORD" me
 
 # Method 3: Create token in Web UI (most secure)
-# Go to AWX Web UI → User Menu → Tokens → Create Token
+# Go to AWX Web UI -> User Menu -> Tokens -> Create Token
 export AWX_TOKEN="your_web_ui_token_here"
 awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" me
 ```
@@ -588,7 +588,7 @@ kubectl create secret generic awx-admin-password -n awx \
 # But later Python/cryptography libraries might reject some older, passwordless PEM keys (test with a passphrase if issues persist).
 
 # 2. Proper Key Upload (No Corrupted Newlines/Escape)
-# When uploading a key via CLI, careful quoting is required—especially so newlines in your PEM key remain intact.
+# When uploading a key via CLI, careful quoting is required-especially so newlines in your PEM key remain intact.
 
 # Direct $(cat ...) in JSON can convert linebreaks to spaces, corrupting the key.
 

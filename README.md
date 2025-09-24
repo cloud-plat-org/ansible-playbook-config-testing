@@ -5,85 +5,78 @@ This comprehensive guide provides step-by-step instructions to set up AWX on Min
 
 ## Quick Start
 For experienced users who want to get started quickly:
-1. [Prerequisites](docs/01-Prerequisites.md) - System requirements and tools
+1. [Prerequisites](docs/01-Prerequisites.md) - System requirements, tools, and WSL configuration
 2. [Infrastructure Setup](docs/02-Infrastructure-Setup.md) - Docker, Minikube, tools installation
 3. [AWX Installation](docs/03-AWX-Installation.md) - AWX operator, deployment, HTTPS
-4. [WSL Configuration](docs/04-WSL-Configuration.md) - Target WSL instances setup
-5. [SSH Authentication](docs/05-SSH-Authentication.md) - SSH keys, credential setup
-6. [AWX Configuration](docs/06-AWX-Configuration.md) - Projects, inventory, job templates
-7. [Playbook Development](docs/07-Playbook-Development.md) - Ansible playbooks
-8. [Testing & Validation](docs/08-Testing-Validation.md) - Job testing, expected outputs
-9. [Daily Operations](docs/09-Daily-Operations.md) - Startup scripts, maintenance
-10. [Troubleshooting](docs/10-Troubleshooting.md) - Common issues and solutions
+4. [SSH Authentication](docs/04-SSH-Authentication.md) - SSH keys, credential setup
+5. [AWX Configuration](docs/05-AWX-Configuration.md) - Projects, inventory, job templates
+6. [Playbook Development](docs/06-Playbook-Development.md) - Ansible playbooks
+7. [Testing & Validation](docs/07-Testing-Validation.md) - Job testing, expected outputs
+8. [Daily Operations](docs/08-Daily-Operations.md) - Startup scripts, maintenance
+9. [Troubleshooting](docs/09-Troubleshooting.md) - Common issues and solutions
 
 ---
 
 ## Documentation Structure
 
-### 📋 [01-Prerequisites.md](docs/01-Prerequisites.md)
-**System Requirements & Tools**
+### [01-Prerequisites.md](docs/01-Prerequisites.md)
+**System Requirements, Tools & WSL Configuration**
 - Hardware requirements (RAM, CPU, storage)
 - Software prerequisites (Docker Desktop, WSL)
 - Required tools (kubectl, jq, git, openssl)
-- Target environment setup
+- WSL instance configuration (Ubuntu-24.04, Kali-Linux)
+- SSH service setup and passwordless sudo
 
-### 🏗️ [02-Infrastructure-Setup.md](docs/02-Infrastructure-Setup.md)
+### [02-Infrastructure-Setup.md](docs/02-Infrastructure-Setup.md)
 **Docker, Minikube & Tools Installation**
 - Docker Desktop startup
 - Minikube installation and configuration
 - Required tools installation
 - Network and tunnel setup
 
-### ⚙️ [03-AWX-Installation.md](docs/03-AWX-Installation.md)
+### [03-AWX-Installation.md](docs/03-AWX-Installation.md)
 **AWX Operator & Instance Deployment**
 - AWX Operator installation
 - AWX instance deployment
 - HTTPS ingress configuration
 - AWX CLI setup and testing
 
-### 🖥️ [04-WSL-Configuration.md](docs/04-WSL-Configuration.md)
-**Target WSL Instances Setup**
-- Ubuntu-24.04 configuration
-- Kali-Linux configuration
-- SSH service setup
-- Passwordless sudo configuration
-
-### 🔐 [05-SSH-Authentication.md](docs/05-SSH-Authentication.md)
+### [04-SSH-Authentication.md](docs/04-SSH-Authentication.md)
 **SSH Key Authentication Setup**
 - SSH key pair generation
 - Public key deployment
 - Authentication testing
 - Key format verification
 
-### 🎯 [06-AWX-Configuration.md](docs/06-AWX-Configuration.md)
+### [05-AWX-Configuration.md](docs/05-AWX-Configuration.md)
 **AWX Projects, Inventory & Templates**
 - Project creation and Git integration
 - Inventory and host group setup
 - Host addition and configuration
 - Credential and job template creation
 
-### 📝 [07-Playbook-Development.md](docs/07-Playbook-Development.md)
+### [06-Playbook-Development.md](docs/06-Playbook-Development.md)
 **Ansible Playbook Creation**
 - Working directory setup
 - Playbook development
 - Git repository integration
 - Best practices and patterns
 
-### ✅ [08-Testing-Validation.md](docs/08-Testing-Validation.md)
+### [07-Testing-Validation.md](docs/07-Testing-Validation.md)
 **Job Testing & Validation**
 - Test job execution
 - Expected output verification
 - Troubleshooting test failures
 - Performance validation
 
-### 🔄 [09-Daily-Operations.md](docs/09-Daily-Operations.md)
+### [08-Daily-Operations.md](docs/08-Daily-Operations.md)
 **Startup Scripts & Maintenance**
 - Daily startup workflow
 - Automation scripts
 - Maintenance procedures
 - Monitoring and health checks
 
-### 🚨 [10-Troubleshooting.md](docs/10-Troubleshooting.md)
+### [09-Troubleshooting.md](docs/09-Troubleshooting.md)
 **Common Issues & Solutions**
 - Minikube connection issues
 - SSH authentication problems
@@ -125,12 +118,12 @@ awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" me
 ## Success Criteria
 
 This configuration provides:
-- ✅ **Fully automated AWX deployment** on Minikube
-- ✅ **SSH key-based authentication** (no password prompts)
-- ✅ **Non-interactive privilege escalation** via sudoers
-- ✅ **Secure HTTPS access** with self-signed certificates
-- ✅ **Multi-target automation** across different WSL distributions
-- ✅ **Production-ready configuration** with proper error handling
+- **Fully automated AWX deployment** on Minikube
+- **SSH key-based authentication** (no password prompts)
+- **Non-interactive privilege escalation** via sudoers
+- **Secure HTTPS access** with self-signed certificates
+- **Multi-target automation** across different WSL distributions
+- **Production-ready configuration** with proper error handling
 
 The setup is completely reproducible and eliminates all interactive authentication requirements.
 
@@ -139,7 +132,7 @@ The setup is completely reproducible and eliminates all interactive authenticati
 ## Getting Help
 
 If you encounter issues:
-1. Check the [Troubleshooting](docs/10-Troubleshooting.md) guide first
+1. Check the [Troubleshooting](docs/09-Troubleshooting.md) guide first
 2. Verify each phase was completed successfully
 3. Check the logs and status of all components
 4. Ensure all prerequisites are met

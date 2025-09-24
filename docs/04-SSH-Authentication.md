@@ -276,7 +276,7 @@ ssh -p 2223 daniv@172.22.192.129 "sudo -l"
 ## Next Steps
 
 Once SSH key authentication is working properly, proceed to:
-- [06-AWX-Configuration.md](06-AWX-Configuration.md) - Projects, inventory, job templates
+- [05-AWX-Configuration.md](05-AWX-Configuration.md) - Projects, inventory, job templates
 
 ## Verification Checklist
 
