@@ -159,8 +159,20 @@ awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" credential get "$
 ## Job Template Creation
 
 ### 1. Create Job Template
+
+**Prerequisite:** The playbook must exist in the GitHub repository. If you get "Playbook not found for project" error, you need to push the playbook to GitHub first.
+
 ```bash
-# Create flexible service testing job template
+# Option A: Use existing playbook (if new playbook not pushed yet)
+awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" job_template create \
+  --name "Test Service Lifecycle WSL" \
+  --project "WSL Project" \
+  --inventory "WSL Lab" \
+  --playbook "stop_services.yml" \
+  --become_enabled true \
+  --ask_credential_on_launch false
+
+# Option B: Use new playbook (after pushing to GitHub)
 awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" job_template create \
   --name "Test Service Lifecycle WSL" \
   --project "WSL Project" \
@@ -173,6 +185,11 @@ awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" job_template crea
 JOB_TEMPLATE_ID=$(awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" job_template list --name "Test Service Lifecycle WSL" | jq -r '.results[0].id')
 echo "Job Template ID: $JOB_TEMPLATE_ID"
 ```
+
+**If you get "Playbook not found" error:**
+1. Push the playbook to GitHub: `git push origin CLPLAT-2223`
+2. Sync AWX project: `awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" project update "WSL Project"`
+3. Wait for sync to complete, then create the job template
 
 ### 2. Associate SSH Key Credential
 ```bash
