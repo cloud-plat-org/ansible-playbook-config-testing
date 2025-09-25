@@ -47,7 +47,7 @@ Our current setup uses a role-based approach with the `service_management` role.
 - **Flexible Service Testing**: Uses `target_service` variable to test any service
 - **Role-Based Architecture**: Leverages the `service_management` role for reusability
 - **Safe Defaults**: Defaults to `cron` service (won't break SSH connectivity)
-- **Complete Lifecycle**: Stop → Wait → Start → Verify
+- **Complete Lifecycle**: Stop -> Wait -> Start -> Verify
 
 ### 2. Making Changes to Existing Playbooks
 ```bash

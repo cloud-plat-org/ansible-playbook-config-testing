@@ -494,6 +494,56 @@ If resources are insufficient, consider:
 - No external exposure by default
 - Consider firewall rules if needed
 
+## Automated WSL Instance Setup
+
+For new WSL instances, use our automated setup tools:
+
+### 1. SSH Connection Setup (Python Script)
+```bash
+# View available hosts and their configuration
+cat wsl_hosts.yml
+
+# Test what would be configured (dry-run)
+python3 scripts/setup_ssh_connections.py --dry-run --status pending
+
+# Configure all pending hosts
+python3 scripts/setup_ssh_connections.py --status pending
+
+# Configure specific hosts only
+python3 scripts/setup_ssh_connections.py --hosts ubuntuAWX,argo_cd_mgt
+
+# This script will:
+# - Install SSH server on new WSL instances
+# - Configure hostnames and SSH ports
+# - Deploy SSH keys for authentication
+# - Test connectivity
+```
+
+### 2. System Configuration (AWX Playbook)
+```bash
+# After SSH is working, use AWX to run configuration playbook
+awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" job_template launch \
+  --job_template "Configure New WSL Instances" \
+  --limit "ubuntuAWX,argo_cd_mgt"
+
+# This playbook will:
+# - Update system packages
+# - Install essential tools
+# - Configure passwordless sudo
+# - Test service management capabilities
+```
+
+### 3. Manual Process (Alternative)
+If you prefer manual configuration, follow the detailed steps in the WSL Configuration sections above.
+
+## Project Standards
+
+This project follows strict coding and documentation standards defined in `CODING_STANDARDS.md`:
+- ASCII-only characters in all files
+- No emojis or decorative characters
+- Consistent formatting and status indicators
+- Professional, clear language
+
 ## Next Steps
 
 Once all prerequisites are met, proceed to:
