@@ -498,26 +498,39 @@ If resources are insufficient, consider:
 
 For new WSL instances, use our automated setup tools:
 
-### 1. SSH Connection Setup (Python Script)
+### 1. SSH Connection Setup (Simple Copy-Paste Script)
+
+**RECOMMENDED**: Use the simple `scripts/ssh_config.py` script for each WSL instance.
+
 ```bash
-# View available hosts and their configuration
-cat wsl_hosts.yml
+# Step 1: On each WSL instance, create the script
+vim ssh_config.py
 
-# Test what would be configured (dry-run)
-python3 scripts/setup_ssh_connections.py --dry-run --status pending
+# Step 2: Copy and paste the content from scripts/ssh_config.py in the repository
 
-# Configure all pending hosts
-python3 scripts/setup_ssh_connections.py --status pending
+# Step 3: Make it executable and run it
+chmod +x ssh_config.py
+python3 ssh_config.py <hostname> <port>
 
-# Configure specific hosts only
-python3 scripts/setup_ssh_connections.py --hosts ubuntuAWX,argo_cd_mgt
+# Examples for each instance:
+# For ubuntuAWX (current instance):
+python3 ssh_config.py ubuntuAWX 2225
 
-# This script will:
-# - Install SSH server on new WSL instances
-# - Configure hostnames and SSH ports
-# - Deploy SSH keys for authentication
-# - Test connectivity
+# For argo_cd_mgt (Ubuntu-2):
+python3 ssh_config.py argo_cd_mgt 2226
 ```
+
+This script will:
+- Install SSH server
+- Configure hostname and SSH port
+- Set up passwordless sudo
+- Enable and start SSH service
+- Provide next steps for key deployment
+
+**See**: `scripts/README.md` for complete step-by-step instructions.
+
+**Manual Alternative**:
+If you prefer manual configuration, follow the detailed WSL Configuration sections below for each instance.
 
 ### 2. System Configuration (AWX Playbook)
 ```bash
