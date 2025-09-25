@@ -44,6 +44,7 @@ INFO:    [NOTE], [INFO], [WARNING]
 - Include docstrings for all functions and classes
 - No emoji in print statements or comments
 - Use clear status messages: "SUCCESS", "ERROR", "WARNING"
+- Always explicitly set `check=False` in `subprocess.run()` calls for security
 
 ### YAML/Ansible
 - Use 2-space indentation
@@ -136,7 +137,8 @@ All new code and documentation must follow these standards. When updating existi
 
 Use these tools to maintain standards:
 - `grep -r "[^\x00-\x7F]" .` - Find non-ASCII characters
-- Standard linting tools for code quality
+- `pylint` - Python code quality checking (configured via `.pylintrc`)
+- `ansible-lint` - Ansible playbook linting (configured via `.ansible-lint`)
 - Spell checkers for documentation
 
 ## Version History
