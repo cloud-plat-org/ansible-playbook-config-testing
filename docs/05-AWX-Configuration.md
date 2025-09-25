@@ -34,11 +34,14 @@ awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" project create \
 PROJECT_ID=$(awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" project list | jq -r '.results[] | select(.name=="WSL Project") | .id')
 
 # Change branch to "main"
-awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" project modify "$PROJECT_ID" --scm_branch "CLPLAT-2223"
+awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" project modify "$PROJECT_ID" --scm_branch "CLPLAT-2225"
 
 # Verify the change
 echo "Updated branch:"
 awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" project get "$PROJECT_ID" | jq '{scm_branch, scm_url}'
+
+# Sync AWX project to get latest changes
+awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" project update "WSL Project"
 ```
 
 ### 3. Enable Auto-Sync on Launch
