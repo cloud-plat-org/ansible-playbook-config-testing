@@ -1,0 +1,11 @@
+---
+# Ansible Collections Requirements for AWX
+# Modern approach using collections instead of roles
+
+collections:
+  # Core Ansible modules (systemd, debug, wait_for) are included by default
+  # No additional collections needed for basic service management
+  
+  # Future collections can be added here as needed:
+  # - name: community.general
+  #   version: ">=1.0.0"

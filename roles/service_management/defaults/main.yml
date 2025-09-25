@@ -1,8 +1,0 @@
----
-# Service Management Role - Default Variables
-
-# Service name (required)
-service_name: ""
-
-# Service action: status, start, stop, restart, enable, disable
-service_action: "status"
