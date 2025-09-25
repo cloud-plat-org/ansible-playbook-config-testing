@@ -1,6 +1,6 @@
 ---
 galaxy_info:
-  author: daniv
+  author: dan_iverson
   description: Flexible service management role for systemctl operations
   company: Personal
   license: MIT
