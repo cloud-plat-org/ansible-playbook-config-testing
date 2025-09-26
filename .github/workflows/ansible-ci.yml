@@ -1,15 +1,16 @@
+---
 name: Ansible CI
 
 on:
   pull_request:
-    branches: [ main ]
+    branches: [main]
     paths:
       - '**/*.yml'
       - '**/*.yaml'
       - '.ansible-lint'
       - 'requirements*.txt'
   push:
-    branches: [ main ]
+    branches: [main]
     paths:
       - '**/*.yml'
       - '**/*.yaml'
@@ -21,111 +22,92 @@ jobs:
     name: Ansible Lint
     runs-on: ubuntu-latest
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-    
-    - name: Set up Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: '3.11'
-    
-    - name: Cache pip dependencies
-      uses: actions/cache@v4
-      with:
-        path: ~/.cache/pip
-        key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements*.txt') }}
-        restore-keys: |
-          ${{ runner.os }}-pip-
-    
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install ansible-lint
-        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
-        if [ -f requirements-dev.txt ]; then pip install -r requirements-dev.txt; fi
-    
-    - name: Run Ansible Lint
-      run: |
-        echo "Ansible Lint version:"
-        ansible-lint --version
-        echo ""
-        echo "Running Ansible Lint on playbooks (excluding Kubernetes manifests)..."
-        ansible-lint . --exclude docs/ --exclude .github/ -v
-    
-    - name: Upload lint results
-      if: always()
-      uses: actions/upload-artifact@v4
-      with:
-        name: ansible-lint-results
-        path: |
-          .ansible-lint-cache/
-          *.log
-        retention-days: 7
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install ansible-lint
+
+      - name: Run Ansible Lint
+        run: |
+          echo "Ansible Lint version:"
+          ansible-lint --version
+          echo "Running Ansible Lint on playbooks..."
+          ansible-lint . --exclude docs/ --exclude .github/ -v
 
   syntax-check:
     name: Ansible Syntax Check
     runs-on: ubuntu-latest
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-    
-    - name: Set up Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: '3.11'
-    
-    - name: Install Ansible
-      run: |
-        python -m pip install --upgrade pip
-        pip install ansible-core
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-    - name: Install Ansible Collections
-      run: |
-        ansible-galaxy collection install -r requirements.yml
-    
-    - name: Find Ansible playbooks
-      id: find-playbooks
-      run: |
-        # Create a temporary file to store playbook paths
-        PLAYBOOKS_FILE=$(mktemp)
-        echo "playbooks_file=$PLAYBOOKS_FILE" >> $GITHUB_OUTPUT
-        find . -name '*.yml' -o -name '*.yaml' | grep -v '.github' | grep -v 'docs/' | grep -v 'awx-ingress.yml' | grep -v 'k8s/' | grep -v 'kubernetes/' | grep -v 'requirements.yml' > "$PLAYBOOKS_FILE"
-        echo "playbooks_count=$(wc -l < "$PLAYBOOKS_FILE")" >> $GITHUB_OUTPUT
-    
-    - name: Run Ansible Syntax Check
-      if: steps.find-playbooks.outputs.playbooks_count > 0
-      run: |
-        echo "Checking syntax for playbooks..."
-        while IFS= read -r playbook; do
-          echo "Checking: $playbook"
-          ansible-playbook --syntax-check "$playbook" || exit 1
-        done < ${{ steps.find-playbooks.outputs.playbooks_file }}
-        echo "All playbooks passed syntax check"
-    
-    - name: No playbooks found
-      if: steps.find-playbooks.outputs.playbooks_count == 0
-      run: |
-        echo "No Ansible playbooks found to check"
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install Ansible
+        run: |
+          python -m pip install --upgrade pip
+          pip install ansible-core
+
+      - name: Install Ansible Collections
+        run: |
+          ansible-galaxy collection install -r requirements.yml
+
+      - name: Find Ansible playbooks
+        id: find-playbooks
+        run: |
+          PLAYBOOKS_FILE=$(mktemp)
+          echo "playbooks_file=$PLAYBOOKS_FILE" >> $GITHUB_OUTPUT
+          find . -name '*.yml' -o -name '*.yaml' | \
+            grep -v '.github' | grep -v 'docs/' | \
+            grep -v 'awx-ingress.yml' | grep -v 'k8s/' | \
+            grep -v 'kubernetes/' | grep -v 'requirements.yml' > "$PLAYBOOKS_FILE"
+          echo "playbooks_count=$(wc -l < "$PLAYBOOKS_FILE")" >> $GITHUB_OUTPUT
+
+      - name: Run Ansible Syntax Check
+        if: steps.find-playbooks.outputs.playbooks_count > 0
+        run: |
+          echo "Checking syntax for playbooks..."
+          while IFS= read -r playbook; do
+            echo "Checking: $playbook"
+            ansible-playbook --syntax-check "$playbook" || exit 1
+          done < ${{ steps.find-playbooks.outputs.playbooks_file }}
+          echo "All playbooks passed syntax check"
+
+      - name: No playbooks found
+        if: steps.find-playbooks.outputs.playbooks_count == 0
+        run: |
+          echo "No Ansible playbooks found to check"
 
   security-scan:
     name: Ansible Security Scan
     runs-on: ubuntu-latest
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-    
-    - name: Set up Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: '3.11'
-    
-    - name: Install security tools
-      run: |
-        python -m pip install --upgrade pip
-        pip install ansible-lint[community]
-    
-    - name: Run security-focused linting
-      run: |
-        echo "Running security-focused Ansible Lint..."
-        ansible-lint . --exclude docs/ --exclude .github/ --profile production --skip-list yaml[line-length]
+      - name: Checkout code
+        uses: actions/checkout@v4
 
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install security tools
+        run: |
+          python -m pip install --upgrade pip
+          pip install ansible-lint[community]
+
+      - name: Run security-focused linting
+        run: |
+          echo "Running security-focused Ansible Lint..."
+          ansible-lint . --exclude docs/ --exclude .github/ \
+            --profile production --skip-list yaml[line-length]
