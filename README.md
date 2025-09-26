@@ -24,7 +24,7 @@ For experienced users who want to get started quickly:
 - Hardware requirements (RAM, CPU, storage)
 - Software prerequisites (Docker Desktop, WSL)
 - Required tools (kubectl, jq, git, openssl)
-- WSL instance configuration (Ubuntu-24.04, Kali-Linux)
+- WSL instance configuration (Ubuntu-22.04, Ubuntu-24.04, Kali-Linux)
 - SSH service setup and passwordless sudo
 
 ### [02-Infrastructure-Setup.md](docs/02-Infrastructure-Setup.md)
@@ -57,17 +57,17 @@ For experienced users who want to get started quickly:
 
 ### [06-Playbook-Development.md](docs/06-Playbook-Development.md)
 **Ansible Playbook Creation**
-- Working directory setup
-- Playbook development
-- Git repository integration
-- Best practices and patterns
+- AWX integration setup
+- Current playbook structure
+- Development workflow
+- Testing and validation
 
 ### [07-Testing-Validation.md](docs/07-Testing-Validation.md)
 **Job Testing & Validation**
-- Test job execution
+- Pre-test verification
+- AWX job testing
 - Expected output verification
 - Troubleshooting test failures
-- Performance validation
 
 ### [08-Daily-Operations.md](docs/08-Daily-Operations.md)
 **Startup Scripts & Maintenance**
@@ -108,13 +108,13 @@ awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" me
 - **CLI**: `awx --conf.host https://localhost:443 -k --conf.token "$AWX_TOKEN"`
 
 ### Key Files
-- **AWX Config**: `awx-deploy.yml`, `awx-ingress.yml`
+- **AWX Config**: `docs/awx-deploy.yml`, `docs/awx-ingress.yml`
 - **SSH Key**: `~/.ssh/awx_wsl_key_traditional`
-- **Playbooks**: `test_service_lifecycle.yml` (modern collections-based), `configure_new_wsl_instances.yml` (production-ready with collections)
+- **Playbooks**: `test_service_lifecycle.yml`, `configure_new_wsl_instances.yml`
 - **Collections**: `requirements.yml` (Ansible collections: `community.general`, `ansible.posix`)
-- **Automation**: `scripts/ssh_config.py` (simple SSH setup script)
-- **Standards**: `CODING_STANDARDS.md` (project coding and documentation standards)
-- **Startup Script**: `~/start_awx.sh`
+- **Automation**: `scripts/ssh_config.py`
+- **Standards**: `CODING_STANDARDS.md`, `.pylintrc`
+- **GitHub**: `.github/workflows/ansible-ci.yml`, `.github/CODEOWNERS`
 ---
 
 ## Success Criteria
@@ -140,36 +140,3 @@ If you encounter issues:
 4. Ensure all prerequisites are met
 
 For specific issues, refer to the relevant detailed documentation file.
-
-
-######################################################################
-## Quick Start
-
-### 1. Clone and Setup
-```bash
-cd ~/ansible/test2
-
-# Install Ansible collections
-ansible-galaxy collection install -r requirements.yml
-
-# Test syntax
-ansible-playbook --syntax-check test_service_lifecycle.yml
-ansible-playbook --syntax-check configure_new_wsl_instances.yml
-```
-
-### 2. Run Playbooks
-```bash
-# Test service lifecycle (safe - uses cron by default)
-ansible-playbook test_service_lifecycle.yml -i inventory.yml
-
-# Configure new WSL instances (comprehensive setup)
-ansible-playbook configure_new_wsl_instances.yml -i inventory.yml
-```
-
-### 3. AWX Integration
-```bash
-# Launch via AWX job template
-awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" job_template launch \
-  --job_template "Test Service Lifecycle WSL" --extra_vars '{"target_service": "cron"}'
-```
-```
