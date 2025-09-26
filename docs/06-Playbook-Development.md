@@ -129,7 +129,12 @@ kubectl exec -n awx awx-web-7d5c774c65-4qdh4 -- whoami
 # Check if the file is readable by the AWX user
 kubectl exec -n awx awx-web-7d5c774c65-4qdh4 -- cat /var/lib/awx/.ssh/awx_wsl_key_traditional.pub
 
+# Check what ~ resolves to in the AWX container
+kubectl exec -n awx awx-web-7d5c774c65-4qdh4 -- echo "Home directory: $HOME"
+kubectl exec -n awx awx-web-7d5c774c65-4qdh4 -- pwd
 
+# Check if the file exists with full path
+kubectl exec -n awx awx-web-7d5c774c65-4qdh4 -- ls -la /var/lib/awx/.ssh/awx_wsl_key_traditional.pub
 
 
 
