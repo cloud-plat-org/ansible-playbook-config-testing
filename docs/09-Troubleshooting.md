@@ -1,17 +1,15 @@
 # Troubleshooting - Common Issues & Solutions
 
 ## Overview
-This document provides comprehensive troubleshooting guidance for common issues encountered in the AWX setup, including Minikube connection issues, SSH authentication problems, AWX job failures, and network issues.
+This document provides troubleshooting guidance for common issues encountered in the AWX setup, including Minikube connection issues, SSH authentication problems, AWX job failures, and network issues.
 
 ## Minikube Connection Issues
 
 ### Problem: Connection Refused Errors
 ```bash
 # Error: dial tcp 127.0.0.1:56627: connect: connection refused
-```
 
-#### Solution Steps:
-```bash
+# Solution Steps:
 # 1. Check Minikube status
 minikube status
 
@@ -24,18 +22,11 @@ kubectl get nodes
 kubectl get pods -A
 ```
 
-#### Root Causes:
-- Minikube VM running but Kubernetes components stopped
-- kubeconfig pointing to wrong endpoint
-- Resource exhaustion causing component failures
-
 ### Problem: Minikube Start Failures
 ```bash
 # Error: minikube start fails with resource errors
-```
 
-#### Solution Steps:
-```bash
+# Solution Steps:
 # 1. Check system resources
 free -h
 df -h
@@ -57,10 +48,8 @@ minikube start --driver=docker --cpus=4 --memory=8g --addons=ingress
 ### Problem: Ingress Not Working
 ```bash
 # Error: Ingress controller not responding
-```
 
-#### Solution Steps:
-```bash
+# Solution Steps:
 # 1. Check ingress addon
 minikube addons list | grep ingress
 
@@ -82,10 +71,8 @@ kubectl get ingress -n awx
 ### Problem: Permission Denied (publickey)
 ```bash
 # Error: Permission denied (publickey)
-```
 
-#### Solution Steps:
-```bash
+# Solution Steps:
 # 1. Check SSH key permissions
 ls -la ~/.ssh/awx_wsl_key_traditional
 chmod 600 ~/.ssh/awx_wsl_key_traditional
@@ -103,10 +90,8 @@ ssh -i ~/.ssh/awx_wsl_key_traditional -p 2223 daniv@172.22.192.129 "whoami"
 ### Problem: SSH Key Format Issues
 ```bash
 # Error: Invalid key format
-```
 
-#### Solution Steps:
-```bash
+# Solution Steps:
 # 1. Check key format
 head -1 ~/.ssh/awx_wsl_key_traditional
 # Should show: -----BEGIN RSA PRIVATE KEY-----
@@ -123,10 +108,8 @@ ssh-copy-id -i ~/.ssh/awx_wsl_key_traditional.pub -p 2224 daniv@172.22.192.129
 ### Problem: Sudo Access Issues
 ```bash
 # Error: sudo: a password is required
-```
 
-#### Solution Steps:
-```bash
+# Solution Steps:
 # 1. Check sudoers configuration
 ssh -p 2223 daniv@172.22.192.129 "sudo cat /etc/sudoers.d/daniv-nopasswd"
 
@@ -142,10 +125,8 @@ ssh -p 2223 daniv@172.22.192.129 "sudo whoami"
 ### Problem: Job Stuck in "Running" State
 ```bash
 # Job never completes or times out
-```
 
-#### Solution Steps:
-```bash
+# Solution Steps:
 # 1. Check job details
 awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" job get "$JOB_ID" | jq '{status, started, finished}'
 
@@ -165,10 +146,8 @@ ssh -i ~/.ssh/awx_wsl_key_traditional -p 2223 daniv@172.22.192.129 "echo test"
 ### Problem: Host Unreachable
 ```bash
 # Error: Host unreachable or connection timeout
-```
 
-#### Solution Steps:
-```bash
+# Solution Steps:
 # 1. Check host variables
 awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" host list --inventory "WSL Lab" | jq '.results[] | {name, variables}'
 
@@ -190,10 +169,8 @@ ip addr show eth0
 ### Problem: Authentication Failures
 ```bash
 # Error: Authentication failed
-```
 
-#### Solution Steps:
-```bash
+# Solution Steps:
 # 1. Check credential configuration
 awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" credential get "$CRED_ID" | jq '.inputs'
 
@@ -216,10 +193,8 @@ awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" credential delete
 ### Problem: Port Forwarding Not Working
 ```bash
 # Error: Port forwarding fails
-```
 
-#### Solution Steps:
-```bash
+# Solution Steps:
 # 1. Check if port is in use
 netstat -tlnp | grep :443
 
@@ -236,10 +211,8 @@ curl -k https://localhost:443
 ### Problem: WSL Network Issues
 ```bash
 # Error: Cannot connect to WSL instances
-```
 
-#### Solution Steps:
-```bash
+# Solution Steps:
 # 1. Check WSL network configuration
 ip addr show eth0
 
@@ -263,10 +236,8 @@ wsl -d kali-linux -- sudo systemctl restart ssh
 ### Problem: Database Connection Issues
 ```bash
 # Error: Database connection failed
-```
 
-#### Solution Steps:
-```bash
+# Solution Steps:
 # 1. Check PostgreSQL status
 kubectl get pods -n awx | grep postgres
 
@@ -288,10 +259,8 @@ kubectl exec -n awx awx-postgres-15-0 -- psql -U awx -c "SELECT pg_size_pretty(p
 ### Problem: Project Sync Failures
 ```bash
 # Error: Project sync fails
-```
 
-#### Solution Steps:
-```bash
+# Solution Steps:
 # 1. Check project sync status
 awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" project get "$PROJECT_ID" | jq '{status, last_job_run}'
 
@@ -312,10 +281,8 @@ awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" project get "$PRO
 ### Problem: Job Template Issues
 ```bash
 # Error: Job template configuration problems
-```
 
-#### Solution Steps:
-```bash
+# Solution Steps:
 # 1. Check job template configuration
 awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" job_template get "$JOB_TEMPLATE_ID" | jq '{become_enabled, ask_credential_on_launch, summary_fields}'
 
@@ -337,10 +304,8 @@ awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" job_template laun
 ### Problem: Slow Job Execution
 ```bash
 # Jobs take too long to complete
-```
 
-#### Solution Steps:
-```bash
+# Solution Steps:
 # 1. Check system resources
 kubectl top pods -n awx
 kubectl top nodes
@@ -365,10 +330,8 @@ kubectl delete pod -n awx awx-web-$(kubectl get pods -n awx | grep awx-web | awk
 ### Problem: Memory Issues
 ```bash
 # Out of memory errors
-```
 
-#### Solution Steps:
-```bash
+# Solution Steps:
 # 1. Check memory usage
 free -h
 kubectl top pods -n awx
@@ -426,255 +389,6 @@ awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" me
 
 # 3. Test functionality
 awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" job_template list
-```
-
-## Password Authentication Troubleshooting (Legacy)
-
-### 1. Job Environment Analysis
-```bash
-# Check job environment variables for passwords
-awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" job get "$JOB_ID" | jq '.job_env' | grep -i password
-
-# Check job arguments to see authentication method
-awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" job get "$JOB_ID" | jq '.job_args'
-
-# Check what variables AWX is providing
-awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" job get "$JOB_ID" | jq '.job_env' | grep -E "(ANSIBLE|SSH|PASSWORD)"
-```
-
-### 2. Credential Input Verification
-```bash
-# Check credential inputs (for troubleshooting)
-awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" credential get "$CRED_ID" | jq '.inputs'
-
-# Example output for password-based credential:
-# {
-#   "password": "$encrypted$",
-#   "username": "daniv",
-#   "become_password": "$encrypted$"
-# }
-```
-
-### 3. Common Password Authentication Issues
-```bash
-# Issue: AWX using interactive prompts
-# Job arguments show: --ask-pass and --ask-become-pass
-# Solution: Use SSH key authentication instead
-
-# Issue: Password not being set as environment variable
-# Solution: Configure AWX to pass credential password as variable
-# Better Solution: Use SSH key authentication (current setup)
-```
-
-**Note:** This section is for reference only. Your current setup uses SSH key authentication, which is more secure and eliminates password prompts.
-
-## systemctl Authentication Issues
-
-### 1. Interactive Authentication Problem
-```bash
-# Issue: systemctl operations require interactive authentication
-# Symptoms:
-# - systemctl status ssh works (read-only)
-# - systemctl stop ssh fails (requires interactive input)
-# - This is a systemd security feature
-
-# Check if this is the issue
-sudo systemctl stop ssh
-# If it prompts for password, you have this issue
-```
-
-### 2. Solution: Granular systemctl Permissions
-```bash
-# Create sudoers file with specific systemctl permissions
-echo "daniv ALL=(ALL) NOPASSWD: /bin/systemctl stop *, /bin/systemctl start *, /bin/systemctl restart *, /bin/systemctl status *" | sudo tee /etc/sudoers.d/daniv-systemctl
-
-# Verify sudoers file
-sudo cat /etc/sudoers.d/daniv-systemctl
-
-# Test systemctl operations
-sudo systemctl stop ssh
-sudo systemctl start ssh
-sudo systemctl status ssh
-```
-
-### 3. Alternative: Full Passwordless Sudo
-```bash
-# If granular permissions don't work, use full passwordless sudo
-echo "daniv ALL=(ALL) NOPASSWD: ALL" | sudo tee /etc/sudoers.d/daniv-nopasswd
-
-# Test
-sudo whoami
-# Should return: root
-```
-
-## Password and Token Issues
-
-### 1. Password vs OAuth2 Token (Simplified Workflow)
-```bash
-# Issue: Password and OAuth2 token are different things
-# Password: Used for Web UI login
-# OAuth2 Token: Used for API/CLI access (valid for ~1 year)
-
-# One-time setup: Generate token from password and store it
-AWX_TOKEN=$(awx --conf.host https://localhost -k --conf.username admin --conf.password "$AWX_PASSWORD" login -f json | jq -r .token)
-
-# Store token in kubectl secret for future use
-kubectl create secret generic awx-admin-password -n awx \
-  --from-literal=password="$AWX_TOKEN" \
-  --dry-run=client -o yaml | kubectl apply -f -
-
-# Extract token for all future AWX commands (no need to regenerate)
-export AWX_TOKEN=$(kubectl get secret awx-admin-password -n awx -o jsonpath='{.data.password}' | base64 -d)
-
-# Use token for API calls
-awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" me
-```
-
-### 2. kubectl Secret vs Custom Password
-```bash
-# Issue: kubectl secret shows different password than what you use to login
-# Cause: You changed the password in Web UI, but kubectl secret wasn't updated
-
-# Check what kubectl secret has
-kubectl get secret awx-admin-password -n awx -o jsonpath='{.data.password}' | base64 -d
-
-# Solution: Update kubectl secret with your current password
-kubectl create secret generic awx-admin-password -n awx \
-  --from-literal=password="$AWX_TOKEN" \
-  --dry-run=client -o yaml | kubectl apply -f -
-```
-
-### 2. Token Authentication Methods
-```bash
-# Method 1: Extract stored token (recommended - no regeneration needed)
-export AWX_TOKEN=$(kubectl get secret awx-admin-password -n awx -o jsonpath='{.data.password}' | base64 -d)
-awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" me
-
-# Method 2: Use username/password directly (generates new token each time)
-awx --conf.host https://localhost -k --conf.username admin --conf.password "YOUR_PASSWORD" me
-
-# Method 3: Create token in Web UI (most secure)
-# Go to AWX Web UI -> User Menu -> Tokens -> Create Token
-export AWX_TOKEN="your_web_ui_token_here"
-awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" me
-```
-
-### 3. Password Reset
-```bash
-# Reset to default password (invalidates all tokens)
-kubectl delete secret awx-admin-password -n awx
-kubectl rollout restart deployment/awx-web -n awx
-kubectl rollout restart deployment/awx-task -n awx
-
-# Get new default password and generate new token
-export AWX_PASSWORD=$(kubectl get secret awx-admin-password -n awx -o jsonpath='{.data.password}' | base64 -d)
-AWX_TOKEN=$(awx --conf.host https://localhost -k --conf.username admin --conf.password "$AWX_PASSWORD" login -f json | jq -r .token)
-
-# Store new token in kubectl secret
-kubectl create secret generic awx-admin-password -n awx \
-  --from-literal=password="$AWX_TOKEN" \
-  --dry-run=client -o yaml | kubectl apply -f -
-```
-
-## SSH Key Troubleshooting
-
-### 1. Key Format Issues
-```bash
-# Common Causes and Solutions
-# 1. Key Format
-# Ansible's paramiko and OpenSSH typically want a PEM-format private key (header: -----BEGIN RSA PRIVATE KEY----- and footer: -----END RSA PRIVATE KEY-----).
-
-# Your command with -m PEM is correct for legacy format.
-# But later Python/cryptography libraries might reject some older, passwordless PEM keys (test with a passphrase if issues persist).
-
-# 2. Proper Key Upload (No Corrupted Newlines/Escape)
-# When uploading a key via CLI, careful quoting is required-especially so newlines in your PEM key remain intact.
-
-# Direct $(cat ...) in JSON can convert linebreaks to spaces, corrupting the key.
-
-# Update credential with the working traditional RSA key
-awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" credential modify "$CRED_ID" \
-  --inputs "{\"username\": \"daniv\", \"ssh_key_data\": \"$(awk 'NF{printf \"%s\\n\",$0;}' ~/.ssh/awx_wsl_key_traditional)\"}"
-```
-
-### 2. SSH Connectivity Testing
-```bash
-# Test SSH connectivity from AWX pod
-kubectl get pods -n awx | grep awx-task
-kubectl exec -n awx -it awx-task-7b9c887444-jb9vd -- ssh -p 2223 daniv@172.22.192.129
-kubectl exec -n awx -it awx-task-7b9c887444-jb9vd -- ssh -p 2224 daniv@172.22.192.129
-
-# Test SSH from local machine
-ssh -p 2223 daniv@172.22.192.129
-ssh -p 2224 daniv@172.22.192.129
-
-# Add host keys to known_hosts
-ssh-keyscan -p 2223 localhost >> ~/.ssh/known_hosts
-ssh-keyscan -p 2224 localhost >> ~/.ssh/known_hosts
-```
-
-### 3. WSL Service Management
-```bash
-# Start WSL distributions
-wsl --distribution Ubuntu-24.04 --user daniv
-wsl --distribution Kali-Linux --user daniv
-
-# Check SSH service status
-sudo systemctl status ssh
-sudo systemctl start ssh
-sudo systemctl restart ssh
-
-# Configure passwordless sudo
-echo "daniv ALL=(ALL) NOPASSWD: ALL" | sudo tee /etc/sudoers.d/daniv
-```
-
-## Advanced Troubleshooting Commands
-
-### 1. Job Environment Debugging
-```bash
-# Check job environment variables
-awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" job get "$JOB_ID" | jq '.job_env'
-
-# Check for password in job environment
-awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" job get "$JOB_ID" | jq '.job_env' | grep -i password
-
-# Check job arguments
-awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" job get "$JOB_ID" | jq '.job_args'
-
-# Verify credential in job
-awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" job get "$JOB_ID" | jq '.summary_fields.credentials'
-
-# Check job working directory
-awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" job get "$JOB_ID" | jq '.job_cwd'
-```
-
-### 2. Project Sync Troubleshooting
-```bash
-# Check project sync status and revision
-awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" project list | jq '.results[] | {name, id, last_job_run, last_job_failed, status}'
-
-# Compare project revision with Git
-awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" project get "$PROJECT_ID" | jq '.scm_revision'
-git log -1 --format="%H"
-
-# Check project update progress
-awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" project_update get 21 | jq '{status, started, finished, elapsed}'
-
-# Monitor project update output
-awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" project_update stdout 21
-```
-
-### 3. Credential Troubleshooting
-```bash
-# Check credential inputs (for troubleshooting)
-awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" credential get "$CRED_ID" | jq '.inputs'
-
-# Disassociate old credential and associate new one
-awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" job_template disassociate --credential "3" "$JOB_TEMPLATE_ID"
-awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" job_template associate --credential "4" "$JOB_TEMPLATE_ID"
-
-# Verify credential association
-awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" job_template get "$JOB_TEMPLATE_ID" | jq '.summary_fields.credentials'
 ```
 
 ## Key Success Factors
@@ -754,7 +468,6 @@ kubectl get pods -n awx -o wide > awx_pods.txt
 # AWX information
 source ~/awx-venv/bin/activate
 export AWX_TOKEN=$(kubectl get secret awx-admin-password -n awx -o jsonpath='{.data.password}' | base64 -d)
-echo "$AWX_TOKEN"
 awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" me > awx_user.txt
 awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" job_template list > job_templates.txt
 
