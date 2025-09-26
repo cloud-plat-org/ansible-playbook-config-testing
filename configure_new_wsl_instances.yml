@@ -98,6 +98,35 @@
       failed_when: false
       changed_when: false
 
+    - name: Configure system timezone (community.general)
+      community.general.timezone:
+        name: America/New_York
+      register: timezone_result
+      failed_when: false
+
+    - name: Set kernel parameters for system optimization (ansible.posix)
+      ansible.posix.sysctl:
+        name: "{{ item.name }}"
+        value: "{{ item.value }}"
+        state: present
+        reload: true
+      loop:
+        - { name: "vm.swappiness", value: "10" }
+        - { name: "net.core.rmem_max", value: "16777216" }
+        - { name: "net.core.wmem_max", value: "16777216" }
+      register: sysctl_result
+      failed_when: false
+
+    - name: Manage SSH authorized keys using ansible.posix
+      ansible.posix.authorized_key:
+        user: "{{ awx_user }}"
+        state: present
+        key: "{{ lookup('file', '~/.ssh/awx_wsl_key_traditional.pub') }}"
+        comment: "AWX automation key - managed by Ansible"
+        exclusive: false
+      register: ssh_key_result
+      failed_when: false
+
     - name: Verify SSH service is running
       systemd:
         name: ssh
@@ -127,18 +156,24 @@
           sudo_access: "{{ sudo_test.rc == 0 }}"
           packages_updated: "{{ package_install.changed | default(false) }}"
           sudoers_configured: "{{ (sudoers_full.changed | default(false)) or (sudoers_systemctl.changed | default(false)) or (sudoers_minimal.changed | default(false)) }}"
+          timezone_configured: "{{ timezone_result.changed | default(false) }}"
+          sysctl_optimized: "{{ sysctl_result.changed | default(false) }}"
+          ssh_key_managed: "{{ ssh_key_result.changed | default(false) }}"
 
     - name: Display configuration summary
       debug:
         msg: |
           [SUCCESS] Configuration Summary for {{ inventory_hostname }}:
           
-          System:  System: {{ system_summary.hostname }} ({{ system_summary.distribution }})
-          SSH Port: SSH Port: {{ system_summary.ssh_port }}
-          SSH Service: SSH Service: {{ system_summary.ssh_service }}
-          Sudo Access: Sudo Access: {{ system_summary.sudo_access }}
-          Packages Updated: Packages Updated: {{ system_summary.packages_updated }}
-          Sudoers Configured:  Sudoers Configured: {{ system_summary.sudoers_configured }}
+          System: {{ system_summary.hostname }} ({{ system_summary.distribution }})
+          SSH Port: {{ system_summary.ssh_port }}
+          SSH Service: {{ system_summary.ssh_service }}
+          Sudo Access: {{ system_summary.sudo_access }}
+          Packages Updated: {{ system_summary.packages_updated }}
+          Sudoers Configured: {{ system_summary.sudoers_configured }}
+          Timezone Configured: {{ system_summary.timezone_configured }}
+          Kernel Optimized: {{ system_summary.sysctl_optimized }}
+          SSH Keys Managed: {{ system_summary.ssh_key_managed }}
           
           Status: Ready for AWX service management! 
 
