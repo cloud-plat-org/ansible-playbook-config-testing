@@ -1,0 +1,36 @@
+---
+- name: Service lifecycle management on target hosts
+  hosts: all
+  become: true
+  become_method: ansible.builtin.sudo
+  tasks:
+    - name: "Stop service: {{ target_service | default('cron') }}"
+      ansible.builtin.systemd:
+        name: "{{ target_service | default('cron') }}"
+        state: stopped
+      register: stop_result
+      failed_when: false
+
+    - name: "Pause {{ wait_time | default(10) }}"
+      ansible.builtin.wait_for:
+        timeout: "{{ wait_time | default(10) }}"
+
+    - name: "Start {{ target_service | default('cron') }}"
+      ansible.builtin.systemd:
+        name: "{{ target_service | default('cron') }}"
+        state: started
+      register: start_result
+      failed_when: false
+
+    - name: "Check {{ target_service | default('cron') }}"
+      ansible.builtin.systemd:
+        name: "{{ target_service | default('cron') }}"
+      register: service_status
+      failed_when: false
+
+    - name: "Display service status"
+      ansible.builtin.debug:
+        msg: |
+          Service: {{ target_service | default('cron') }}
+          Status: {{ service_status.status.ActiveState | default('unknown') }}
+          Running: {{ service_status.status.SubState | default('unknown') }}

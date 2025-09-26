@@ -37,7 +37,7 @@ Ensure Docker Desktop is configured for WSL2:
 ### 1. Start Minikube with Proper Resources
 ```bash
 # Start Minikube with adequate resources
-minikube start --driver=docker --cpus=4 --memory=8g --addons=ingress
+minikube start
 
 # Verify cluster status
 minikube status
@@ -57,6 +57,9 @@ kubeconfig: Configured
 ```bash
 # Check cluster nodes
 kubectl get nodes
+
+# Check AWX pods
+kubectl get pods -n awx
 
 # Check all pods
 kubectl get pods -A
@@ -95,8 +98,17 @@ minikube ip
 # Check services
 kubectl get svc -A
 
-# Test connectivity
-curl -k https://$(minikube ip)
+# Test connectivity via NodePort (most reliable method)
+curl -k https://localhost
+```
+
+Start WSL instances in PowerShell:
+```powershell
+# Start Ubuntu-24.04 (your AWX target)
+wsl -d Ubuntu-24.04
+
+# Start kali-linux 
+wsl -d kali-linux
 ```
 
 ## Required Tools Installation
@@ -160,14 +172,17 @@ python3 --version
 
 ### 2. Network Connectivity Test
 ```bash
-# Test local connectivity
+# Test AWX via localhost (if tunnel is running)
 curl -k https://localhost
 
-# Test Minikube connectivity
-curl -k https://$(minikube ip)
+# Check service status
+kubectl get svc -n awx
 
-# Check if tunnel is working
-kubectl get svc -A | grep LoadBalancer
+# Troubleshooting connectivity issues
+echo "=== Connectivity Troubleshooting ==="
+echo "Minikube IP: $(minikube ip)"
+echo "AWX NodePort: $(kubectl get svc awx-service -n awx -o jsonpath='{.spec.ports[0].nodePort}')"
+echo "Ingress Ports: $(kubectl get svc ingress-nginx-controller -n ingress-nginx -o jsonpath='{.spec.ports[0].nodePort}')"
 ```
 
 ## Configuration Files
@@ -191,6 +206,39 @@ minikube config view
 # Set additional configurations if needed
 minikube config set memory 8192
 minikube config set cpus 4
+```
+
+### 3. Comprehensive Status Check
+```bash
+# Complete infrastructure status verification
+echo "=== Docker Status ==="
+docker --version
+docker ps
+
+echo "=== Minikube Status ==="
+minikube status
+
+echo "=== Kubernetes Status ==="
+kubectl get nodes
+kubectl get pods -A | grep -E "(Running|Completed)"
+
+echo "=== Tools Status ==="
+kubectl version --client
+jq --version
+git --version
+python3 --version
+
+echo "=== AWX Service Status ==="
+kubectl get svc -n awx
+
+echo "=== Connectivity Troubleshooting ==="
+echo "Minikube IP: $(minikube ip)"
+echo "AWX NodePort: $(kubectl get svc awx-service -n awx -o jsonpath='{.spec.ports[0].nodePort}')"
+echo "Ingress Ports: $(kubectl get svc ingress-nginx-controller -n ingress-nginx -o jsonpath='{.spec.ports[0].nodePort}')"
+
+echo "=== Working Access Methods ==="
+echo "Primary: curl -k https://localhost"
+echo "Alternative: curl -k http://$(minikube ip):31640"
 ```
 
 ## Troubleshooting Infrastructure Issues

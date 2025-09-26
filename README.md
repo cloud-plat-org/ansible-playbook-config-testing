@@ -110,9 +110,11 @@ awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" me
 ### Key Files
 - **AWX Config**: `awx-deploy.yml`, `awx-ingress.yml`
 - **SSH Key**: `~/.ssh/awx_wsl_key_traditional`
-- **Playbook**: `stop_services.yml`
+- **Playbooks**: `test_service_lifecycle.yml` (modern collections-based), `configure_new_wsl_instances.yml` (production-ready with collections)
+- **Collections**: `requirements.yml` (Ansible collections: `community.general`, `ansible.posix`)
+- **Automation**: `scripts/ssh_config.py` (simple SSH setup script)
+- **Standards**: `CODING_STANDARDS.md` (project coding and documentation standards)
 - **Startup Script**: `~/start_awx.sh`
-
 ---
 
 ## Success Criteria
@@ -140,3 +142,44 @@ If you encounter issues:
 For specific issues, refer to the relevant detailed documentation file.
 
 
+######################################################################
+
+bash```
+cd ~/ansible/test2
+
+# Create inventory file
+cat > inventory.ini << 'EOF'
+[wsl_hosts]
+wslubuntu1 ansible_host=172.22.192.129 ansible_port=2223 ansible_user=daniv
+wslkali1 ansible_host=172.22.192.129 ansible_port=2224 ansible_user=daniv
+
+[local]
+localhost ansible_connection=local
+EOF
+
+# Create role structure
+ansible-galaxy init roles/system_info
+
+# Create test playbook
+cat > test_system_info.yml << 'EOF'
+---
+- name: Test system_info role
+  hosts: wsl_hosts
+  become: false
+  roles:
+    - system_info
+  vars:
+    report_title: "WSL System Information Report"
+    include_network_details: true
+    include_disk_details: true
+    include_memory_details: true
+EOF
+
+# Optional: Create requirements file
+cat > requirements.yml << 'EOF'
+# External roles from Ansible Galaxy can be listed here
+# Local roles in roles/ directory are automatically available
+EOF
+
+
+```

@@ -26,7 +26,7 @@ awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" project create \
   --organization Default \
   --scm_type git \
   --scm_url "https://github.com/cloud-plat-org/ansible-playbook-config-testing.git" \
-  --scm_branch "CLPLAT-2221"
+  --scm_branch "CLPLAT-2223"
 
 ## Changing branch back to main.
 ```bash
@@ -34,11 +34,14 @@ awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" project create \
 PROJECT_ID=$(awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" project list | jq -r '.results[] | select(.name=="WSL Project") | .id')
 
 # Change branch to "main"
-awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" project modify "$PROJECT_ID" --scm_branch "main"
+awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" project modify "$PROJECT_ID" --scm_branch "CLPLAT-2225"
 
 # Verify the change
 echo "Updated branch:"
 awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" project get "$PROJECT_ID" | jq '{scm_branch, scm_url}'
+
+# Sync AWX project to get latest changes
+awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" project update "WSL Project"
 ```
 
 ### 3. Enable Auto-Sync on Launch
@@ -86,6 +89,13 @@ echo "Group ID: $GROUP_ID"
 
 ### 1. Add Ubuntu-24.04 Host
 ```bash
+
+# List all hosts in the WSL Lab inventory
+awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" host list --inventory "WSL Lab" | jq '.results[] | {name, ansible_host, ansible_port, variables}'
+
+# Or list ALL hosts across all inventories
+awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" host list | jq '.results[] | {name: .name, inventory: .summary_fields.inventory.name, variables: .variables}'
+
 # Add Ubuntu-24.04 host
 awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" host create \
   --name wslubuntu1 \
@@ -159,20 +169,85 @@ awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" credential get "$
 ## Job Template Creation
 
 ### 1. Create Job Template
+
+**Prerequisite:** The playbook must exist in the GitHub repository. If you get "Playbook not found for project" error, you need to push the playbook to GitHub first.
+
 ```bash
-# Create job template
+# Option A: Use existing playbook (if new playbook not pushed yet)
 awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" job_template create \
-  --name "Stop Services WSL" \
+  --name "Test Service Lifecycle WSL" \
   --project "WSL Project" \
   --inventory "WSL Lab" \
-  --playbook "stop_services.yml" \
+  --playbook "test_service_lifecycle.yml" \
   --become_enabled true \
   --ask_credential_on_launch false
 
+# Option B: Use new playbook (after pushing to GitHub)
+awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" job_template create \
+  --name "Test Service Lifecycle WSL" \
+  --project "WSL Project" \
+  --inventory "WSL Lab" \
+  --playbook "test_service_lifecycle.yml" \
+  --become_enabled true \
+  --ask_credential_on_launch false
+
+# New template for new playbook:
+awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" job_template create \
+  --name "Configure WSL Instances" \
+  --project "WSL Project" \
+  --playbook "configure_new_wsl_instances.yml" \
+  --inventory "WSL Lab" \
+  --credential "WSL SSH Key" \
+  --become_enabled true \
+  --verbosity 1 \
+  --job_type run
+
+# Verify new template:
+awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" job_template list | jq '.results[] | {name, project: .summary_fields.project.name, playbook, id}'
+
+# delete templet by id:
+awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" job_template delete 11
+
+# Add the SSH credential
+awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" job_template associate \
+  --job_template 11 \
+  --credential "WSL SSH Key"
+
+# Check credentials, noticed missing from output after creation
+awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" job_template get 12 | jq '{name, become_enabled, credentials: .summary_fields.credentials}'
+# Added credentials because they were missing.
+awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" job_template associate \
+  --job_template 12 \
+  --credential "WSL SSH Key"
+
+# Enable become (privilege escalation)  
+awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" job_template modify \
+  --job_template 11 \
+  --become_enabled true
+
+# Check current project names
+awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" project list | jq '.results[] | {name, id}'
+
+# Check current job template details 
+awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" job_template get $(awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" job_template list --name "Test Service Lifecycle WSL" | jq -r '.results[0].id') | jq '{name, project: .summary_fields.project.name, credentials: .summary_fields.credentials}'
+
+
+
 # Get job template ID
-JOB_TEMPLATE_ID=$(awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" job_template list --name "Stop Services WSL" | jq -r '.results[0].id')
+JOB_TEMPLATE_ID=$(awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" job_template list --name "Test Service Lifecycle WSL" | jq -r '.results[0].id')
 echo "Job Template ID: $JOB_TEMPLATE_ID"
 ```
+
+**If you get "Playbook not found" error:**
+1. **Push the playbook to GitHub**: `git push origin CLPLAT-2223`
+2. **Sync AWX project**: `awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" project update "WSL Project"`
+3. **Wait for sync to complete**: Check status with `awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" project_update get UPDATE_ID | jq '{status, finished}'`
+4. **Then create the job template**
+
+**Important Notes:**
+- AWX only sees playbooks that are committed and pushed to GitHub
+- Project sync is required after every git push
+- Job template creation will fail if playbook doesn't exist in the repository
 
 ### 2. Associate SSH Key Credential
 ```bash
@@ -181,10 +256,10 @@ awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" job_template asso
 
 # Method 2: Associate credential using credential name (alternative approach)
 awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" job_template create \
-  --name "Stop Services WSL" \
+  --name "Test Service Lifecycle WSL" \
   --project "WSL Project" \
   --inventory "WSL Lab" \
-  --playbook "stop_services.yml" \
+  --playbook "test_service_lifecycle.yml" \
   --credential "WSL SSH Key" \
   --become_enabled true
 
@@ -199,10 +274,10 @@ awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" job_template get 
 
 # Expected output:
 # {
-#   "name": "Stop Services WSL",
+#   "name": "Test Service Lifecycle WSL",
 #   "project": 1,
 #   "inventory": 1,
-#   "playbook": "stop_services.yml",
+#   "playbook": "test_service_lifecycle.yml",
 #   "become_enabled": true,
 #   "ask_credential_on_launch": false
 # }
@@ -226,6 +301,10 @@ jq -r '.results[] | [.name, .status, .last_job_run, .last_job_failed] | @tsv'
 
 ### 2. Job Template Management
 ```bash
+# Get job template ID (if not already set)
+JOB_TEMPLATE_ID=$(awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" job_template list --name "Test Service Lifecycle WSL" | jq -r '.results[0].id')
+echo "Job Template ID: $JOB_TEMPLATE_ID"
+
 # List job templates
 awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" job_template list
 
@@ -242,8 +321,8 @@ awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" job_template get 
 ```bash
 # Launch job with service name variable
 JOB_ID=$(awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" job_template launch \
-  --job_template "Stop Services WSL" \
-  --extra_vars '{"service_name": "ssh"}' | jq -r .id)
+  --job_template "Test Service Lifecycle WSL" \
+  --extra_vars '{"target_service": "cron"}' | jq -r .id)
 
 echo "Job ID: $JOB_ID"
 ```
@@ -263,7 +342,7 @@ awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" job list
 ### 3. AWX Version Considerations
 ```bash
 # Check AWX version
-awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" me | jq '.version'
+kubectl get pods -n awx -o jsonpath='{.items[0].spec.containers[0].image}'
 
 # Note: AWX CLI limitations in version 24.6.1
 # - No direct group associate command
@@ -309,16 +388,25 @@ awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" project get "$PRO
 
 #### Project Sync Failures
 ```bash
-# Check project sync logs
-awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" project get "$PROJECT_ID" | jq '.last_job_run'
+# Check project sync status
+awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" project get "$PROJECT_ID" | jq '{name, status, last_job_run}'
 
-# Get job details
-JOB_ID=$(awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" project get "$PROJECT_ID" | jq -r '.last_job_run')
-awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" job stdout "$JOB_ID"
+# Get latest project update job ID (not timestamp)
+PROJECT_UPDATE_ID=$(awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" project_update list --project "$PROJECT_ID" | jq -r '.results[0].id')
+echo "Project Update ID: $PROJECT_UPDATE_ID"
+
+# Get project update job output
+awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" project_update stdout "$PROJECT_UPDATE_ID"
 ```
 
 #### Host Connection Issues
 ```bash
+# Get host IDs
+UBUNTU_HOST_ID=$(awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" host list --name "wslubuntu1" | jq -r '.results[0].id')
+KALI_HOST_ID=$(awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" host list --name "wslkali1" | jq -r '.results[0].id')
+echo "Ubuntu Host ID: $UBUNTU_HOST_ID"
+echo "Kali Host ID: $KALI_HOST_ID"
+
 # Test host connectivity
 awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" host get "$UBUNTU_HOST_ID" | jq '.variables'
 awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" host get "$KALI_HOST_ID" | jq '.variables'
@@ -328,10 +416,14 @@ awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" host get "$KALI_H
 
 #### Credential Issues
 ```bash
-# Check credential format
-awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" credential get "$CRED_ID" | jq '.inputs.ssh_key_data' | head -1
+# Get credential ID
+CRED_ID=$(awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" credential list --name "WSL SSH Key" | jq -r '.results[0].id')
+echo "Credential ID: $CRED_ID"
 
-# Should show: "-----BEGIN RSA PRIVATE KEY-----"
+# Check credential format
+awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" credential get "$CRED_ID" | jq -r '.inputs.ssh_key_data' | head -1
+
+# Should show: $encrypted$ (AWX encrypts SSH keys for security)
 ```
 
 #### Job Template Issues
@@ -348,7 +440,7 @@ awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" job_template get 
 ```bash
 # Add extra variables to job template
 awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" job_template modify "$JOB_TEMPLATE_ID" \
-  --extra_vars '{"service_name": "ssh", "debug_mode": true}'
+  --extra_vars '{"target_service": "cron", "debug_mode": true}'
 ```
 
 ### 2. Configure Job Tags
@@ -435,6 +527,7 @@ awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" host get --name w
 awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" host get --name wslkali1 | jq '.variables'
 
 # Update host variables (clean format)
+HOST_ID=$(awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" host list --name "wslubuntu1" | jq -r '.results[0].id')
 awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" host modify "$HOST_ID" --variables '{"ansible_host": "172.22.192.129", "ansible_port": 2223}'
 
 # Delete host (if needed)
@@ -477,13 +570,16 @@ awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" job get "$JOB_ID"
 ### 7. SSH Key Troubleshooting
 ```bash
 # Test SSH connectivity from AWX pod
+# Get current AWX task pod name (pod names change on restarts)
 kubectl get pods -n awx | grep awx-task
-kubectl exec -n awx -it awx-task-7b9c887444-jb9vd -- ssh -p 2223 daniv@172.22.192.129
-kubectl exec -n awx -it awx-task-7b9c887444-jb9vd -- ssh -p 2224 daniv@172.22.192.129
 
-# Test SSH from local machine
-ssh -p 2223 daniv@172.22.192.129
-ssh -p 2224 daniv@172.22.192.129
+# Test SSH from AWX task pod (use current pod name from above)
+kubectl exec -n awx -it awx-task-65c6fb66f6-f9gr7 -- ssh -p 2223 daniv@172.22.192.129
+kubectl exec -n awx -it awx-task-65c6fb66f6-f9gr7 -- ssh -p 2224 daniv@172.22.192.129
+
+# Test SSH from local machine (these work!)
+ssh -p 2223 daniv@172.22.192.129  # Connects to Ubuntu-24.04 (wslubuntu1)
+ssh -p 2224 daniv@172.22.192.129  # Connects to kali-linux (wslkali1)
 
 # Add host keys to known_hosts
 ssh-keyscan -p 2223 localhost >> ~/.ssh/known_hosts

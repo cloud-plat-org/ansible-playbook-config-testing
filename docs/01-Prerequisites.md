@@ -494,6 +494,69 @@ If resources are insufficient, consider:
 - No external exposure by default
 - Consider firewall rules if needed
 
+## Automated WSL Instance Setup
+
+For new WSL instances, use our automated setup tools:
+
+### 1. SSH Connection Setup (Simple Copy-Paste Script)
+
+**RECOMMENDED**: Use the simple `scripts/ssh_config.py` script for each WSL instance.
+
+```bash
+# Step 1: On each WSL instance, create the script
+vim ssh_config.py
+
+# Step 2: Copy and paste the content from scripts/ssh_config.py in the repository
+
+# Step 3: Make it executable and run it
+chmod +x ssh_config.py
+python3 ssh_config.py <hostname> <port>
+
+# Examples for each instance:
+# For ubuntuAWX (current instance):
+python3 ssh_config.py ubuntuAWX 2225
+
+# For argo_cd_mgt (Ubuntu-2):
+python3 ssh_config.py argo_cd_mgt 2226
+```
+
+This script will:
+- Install SSH server
+- Configure hostname and SSH port
+- Set up passwordless sudo
+- Enable and start SSH service
+- Provide next steps for key deployment
+
+**See**: `scripts/README.md` for complete step-by-step instructions.
+
+**Manual Alternative**:
+If you prefer manual configuration, follow the detailed WSL Configuration sections below for each instance.
+
+### 2. System Configuration (AWX Playbook)
+```bash
+# After SSH is working, use AWX to run configuration playbook
+awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" job_template launch \
+  --job_template "Configure New WSL Instances" \
+  --limit "ubuntuAWX,argo_cd_mgt"
+
+# This playbook will:
+# - Update system packages
+# - Install essential tools
+# - Configure passwordless sudo
+# - Test service management capabilities
+```
+
+### 3. Manual Process (Alternative)
+If you prefer manual configuration, follow the detailed steps in the WSL Configuration sections above.
+
+## Project Standards
+
+This project follows strict coding and documentation standards defined in `CODING_STANDARDS.md`:
+- ASCII-only characters in all files
+- No emojis or decorative characters
+- Consistent formatting and status indicators
+- Professional, clear language
+
 ## Next Steps
 
 Once all prerequisites are met, proceed to:
