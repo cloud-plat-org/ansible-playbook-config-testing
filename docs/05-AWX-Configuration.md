@@ -220,15 +220,10 @@ awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" job_template asso
   --job_template 12 \
   --credential "WSL SSH Key"
 
-
-
 # Enable become (privilege escalation)  
 awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" job_template modify \
   --job_template 11 \
   --become_enabled true
-
-
-
 
 # Check current project names
 awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" project list | jq '.results[] | {name, id}'
