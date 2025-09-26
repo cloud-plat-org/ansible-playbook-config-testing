@@ -143,43 +143,33 @@ For specific issues, refer to the relevant detailed documentation file.
 
 
 ######################################################################
+## Quick Start
 
-bash```
+### 1. Clone and Setup
+```bash
 cd ~/ansible/test2
 
-# Create inventory file
-cat > inventory.ini << 'EOF'
-[wsl_hosts]
-wslubuntu1 ansible_host=172.22.192.129 ansible_port=2223 ansible_user=daniv
-wslkali1 ansible_host=172.22.192.129 ansible_port=2224 ansible_user=daniv
+# Install Ansible collections
+ansible-galaxy collection install -r requirements.yml
 
-[local]
-localhost ansible_connection=local
-EOF
+# Test syntax
+ansible-playbook --syntax-check test_service_lifecycle.yml
+ansible-playbook --syntax-check configure_new_wsl_instances.yml
+```
 
-# Create role structure
-ansible-galaxy init roles/system_info
+### 2. Run Playbooks
+```bash
+# Test service lifecycle (safe - uses cron by default)
+ansible-playbook test_service_lifecycle.yml -i inventory.yml
 
-# Create test playbook
-cat > test_system_info.yml << 'EOF'
----
-- name: Test system_info role
-  hosts: wsl_hosts
-  become: false
-  roles:
-    - system_info
-  vars:
-    report_title: "WSL System Information Report"
-    include_network_details: true
-    include_disk_details: true
-    include_memory_details: true
-EOF
+# Configure new WSL instances (comprehensive setup)
+ansible-playbook configure_new_wsl_instances.yml -i inventory.yml
+```
 
-# Optional: Create requirements file
-cat > requirements.yml << 'EOF'
-# External roles from Ansible Galaxy can be listed here
-# Local roles in roles/ directory are automatically available
-EOF
-
-
+### 3. AWX Integration
+```bash
+# Launch via AWX job template
+awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" job_template launch \
+  --job_template "Test Service Lifecycle WSL" --extra_vars '{"target_service": "cron"}'
+```
 ```

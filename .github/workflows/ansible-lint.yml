@@ -1,14 +1,15 @@
+---
 name: Ansible Lint
 
 on:
   pull_request:
-    branches: [ main ]
+    branches: [main]
     paths:
       - '**/*.yml'
       - '**/*.yaml'
       - '.ansible-lint'
   push:
-    branches: [ main ]
+    branches: [main]
     paths:
       - '**/*.yml'
       - '**/*.yaml'
@@ -18,53 +19,22 @@ jobs:
   lint:
     runs-on: ubuntu-latest
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-    
-    - name: Set up Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: '3.11'
-    
-    - name: Install Ansible Lint
-      run: |
-        pip install --upgrade pip
-        pip install ansible-lint
-    
-    - name: Run Ansible Lint
-      run: |
-        echo "Ansible Lint version:"
-        ansible-lint --version
-        echo "Running Ansible Lint on playbooks (excluding Kubernetes manifests)..."
-        ansible-lint . --exclude docs/ --exclude .github/ -v
-    
-    - name: Comment PR with results
-      if: github.event_name == 'pull_request'
-      uses: actions/github-script@v7
-      with:
-        script: |
-          const fs = require('fs');
-          const path = require('path');
-          
-          // Check if there are any Ansible files
-          const ansibleFiles = [];
-          const walkDir = (dir) => {
-            const files = fs.readdirSync(dir);
-            files.forEach(file => {
-              const filePath = path.join(dir, file);
-              const stat = fs.statSync(filePath);
-              if (stat.isDirectory() && !file.startsWith('.') && file !== 'node_modules') {
-                walkDir(filePath);
-              } else if (file.endsWith('.yml') || file.endsWith('.yaml')) {
-                ansibleFiles.push(filePath);
-              }
-            });
-          };
-          
-          walkDir('.');
-          
-          if (ansibleFiles.length > 0) {
-            console.log(`Found ${ansibleFiles.length} Ansible files to lint`);
-          } else {
-            console.log('No Ansible files found to lint');
-          }
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install Ansible Lint
+        run: |
+          pip install --upgrade pip
+          pip install ansible-lint
+
+      - name: Run Ansible Lint
+        run: |
+          echo "Ansible Lint version:"
+          ansible-lint --version
+          echo "Running Ansible Lint on playbooks..."
+          ansible-lint . --exclude docs/ --exclude .github/ -v
