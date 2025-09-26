@@ -78,6 +78,10 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         pip install ansible-core
+
+    - name: Install Ansible Collections
+      run: |
+        ansible-galaxy collection install -r requirements.yml
     
     - name: Find Ansible playbooks
       id: find-playbooks
