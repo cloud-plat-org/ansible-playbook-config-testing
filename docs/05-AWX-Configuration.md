@@ -191,6 +191,53 @@ awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" job_template crea
   --become_enabled true \
   --ask_credential_on_launch false
 
+# New template for new playbook:
+awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" job_template create \
+  --name "Configure WSL Instances" \
+  --project "WSL Project" \
+  --playbook "configure_new_wsl_instances.yml" \
+  --inventory "WSL Lab" \
+  --credential "WSL SSH Key" \
+  --become_enabled true \
+  --verbosity 1 \
+  --job_type run
+
+# Verify new template:
+awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" job_template list | jq '.results[] | {name, project: .summary_fields.project.name, playbook, id}'
+
+# delete templet by id:
+awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" job_template delete 11
+
+# Add the SSH credential
+awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" job_template associate \
+  --job_template 11 \
+  --credential "WSL SSH Key"
+
+# Check credentials, noticed missing from output after creation
+awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" job_template get 12 | jq '{name, become_enabled, credentials: .summary_fields.credentials}'
+# Added credentials because they were missing.
+awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" job_template associate \
+  --job_template 12 \
+  --credential "WSL SSH Key"
+
+
+
+# Enable become (privilege escalation)  
+awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" job_template modify \
+  --job_template 11 \
+  --become_enabled true
+
+
+
+
+# Check current project names
+awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" project list | jq '.results[] | {name, id}'
+
+# Check current job template details 
+awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" job_template get $(awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" job_template list --name "Test Service Lifecycle WSL" | jq -r '.results[0].id') | jq '{name, project: .summary_fields.project.name, credentials: .summary_fields.credentials}'
+
+
+
 # Get job template ID
 JOB_TEMPLATE_ID=$(awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" job_template list --name "Test Service Lifecycle WSL" | jq -r '.results[0].id')
 echo "Job Template ID: $JOB_TEMPLATE_ID"
