@@ -85,7 +85,7 @@ jobs:
         # Create a temporary file to store playbook paths
         PLAYBOOKS_FILE=$(mktemp)
         echo "playbooks_file=$PLAYBOOKS_FILE" >> $GITHUB_OUTPUT
-        find . -name '*.yml' -o -name '*.yaml' | grep -v '.github' | grep -v 'docs/' | grep -v 'awx-ingress.yml' | grep -v 'k8s/' | grep -v 'kubernetes/' > "$PLAYBOOKS_FILE"
+        find . -name '*.yml' -o -name '*.yaml' | grep -v '.github' | grep -v 'docs/' | grep -v 'awx-ingress.yml' | grep -v 'k8s/' | grep -v 'kubernetes/' | grep -v 'requirements.yml' > "$PLAYBOOKS_FILE"
         echo "playbooks_count=$(wc -l < "$PLAYBOOKS_FILE")" >> $GITHUB_OUTPUT
     
     - name: Run Ansible Syntax Check
