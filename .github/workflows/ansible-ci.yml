@@ -3,7 +3,8 @@ name: Ansible CI
 
 on:
   pull_request:
-    branches: [main]
+    branches:
+      - main
     paths:
       - '**/*.yml'
       - '**/*.yaml'
@@ -71,7 +72,8 @@ jobs:
           find . -name '*.yml' -o -name '*.yaml' | \
             grep -v '.github' | grep -v 'docs/' | \
             grep -v 'awx-ingress.yml' | grep -v 'k8s/' | \
-            grep -v 'kubernetes/' | grep -v 'requirements.yml' > "$PLAYBOOKS_FILE"
+            grep -v 'kubernetes/' | \
+            grep -v 'requirements.yml' > "$PLAYBOOKS_FILE"
           echo "playbooks_count=$(wc -l < "$PLAYBOOKS_FILE")" >> $GITHUB_OUTPUT
 
       - name: Run Ansible Syntax Check
