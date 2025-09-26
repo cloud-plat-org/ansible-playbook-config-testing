@@ -101,6 +101,9 @@ kubectl get svc -n awx
 source ~/awx-venv/bin/activate
 export AWX_TOKEN=$(kubectl get secret awx-admin-password -n awx -o jsonpath='{.data.password}' | base64 -d)
 awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" me
+
+# Validate YAML files
+yamllint .github/workflows/ansible-ci.yml
 ```
 
 ### Access Points
