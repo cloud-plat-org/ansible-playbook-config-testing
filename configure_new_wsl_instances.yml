@@ -121,7 +121,7 @@
       ansible.posix.authorized_key:
         user: "{{ awx_user }}"
         state: present
-        key: "{{ lookup('file', '~/.ssh/awx_wsl_key_traditional.pub') }}"
+        key: "{{ lookup('file', '/var/lib/awx/.ssh/awx_wsl_key_traditional.pub') }}"
         comment: "AWX automation key - managed by Ansible"
         exclusive: false
       register: ssh_key_result

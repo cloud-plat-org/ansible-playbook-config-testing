@@ -83,13 +83,63 @@ awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" project update "W
 
 ### 2. Testing New Playbooks
 ```bash
-# Test with different services
+# Test with different services: "Test Service Lifecycle WSL"
 JOB_ID=$(awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" job_template launch \
   --job_template "Test Service Lifecycle WSL" --extra_vars '{"target_service": "systemd-resolved"}' | jq -r .id)
 
 # Monitor execution
 awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" job get "$JOB_ID" | jq '{id, status, started, finished}'
 awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" job stdout "$JOB_ID"
+
+
+# test "Configure WSL Instances"
+JOB_ID=$(awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" job_template launch \
+ --job_template "Configure WSL Instances" | jq -r .id)
+echo "Launched job ID: $JOB_ID"
+
+# Check status
+awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" job get "$JOB_ID" | jq '{id, status, started, finished}'
+awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" job stdout "$JOB_ID"
+
+kubectl get pods -n awx | grep awx-web
+
+# 1. Create the .ssh directory first
+kubectl exec -n awx awx-web-7d5c774c65-4qdh4 -- mkdir -p /var/lib/awx/.ssh
+
+# 2. Now copy the public key
+kubectl cp ~/.ssh/awx_wsl_key_traditional.pub awx/awx-web-7d5c774c65-4qdh4:/var/lib/awx/.ssh/awx_wsl_key_traditional.pub
+
+# 3. Set proper ownership and permissions
+kubectl exec -n awx awx-web-7d5c774c65-4qdh4 -- chown -R 1000:1000 /var/lib/awx/.ssh
+kubectl exec -n awx awx-web-7d5c774c65-4qdh4 -- chmod 700 /var/lib/awx/.ssh
+kubectl exec -n awx awx-web-7d5c774c65-4qdh4 -- chmod 644 /var/lib/awx/.ssh/awx_wsl_key_traditional.pub
+
+# 4. Verify the file was copied correctly
+kubectl exec -n awx awx-web-7d5c774c65-4qdh4 -- ls -la /var/lib/awx/.ssh/
+
+# Check what's in the directory and who owns it
+kubectl exec -n awx awx-web-7d5c774c65-4qdh4 -- ls -la /var/lib/awx/.ssh/
+
+# Check who owns the parent directory
+kubectl exec -n awx awx-web-7d5c774c65-4qdh4 -- ls -la /var/lib/awx/
+
+# Check what user the AWX container is running as
+kubectl exec -n awx awx-web-7d5c774c65-4qdh4 -- whoami
+
+# Check if the file is readable by the AWX user
+kubectl exec -n awx awx-web-7d5c774c65-4qdh4 -- cat /var/lib/awx/.ssh/awx_wsl_key_traditional.pub
+
+
+
+
+
+
+
+
+
+
+
+
 ```
 
 ## Development Tools
