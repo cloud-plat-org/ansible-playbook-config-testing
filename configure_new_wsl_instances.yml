@@ -117,16 +117,6 @@
       register: sysctl_result
       failed_when: false
 
-    - name: Manage SSH authorized keys using ansible.posix
-      ansible.posix.authorized_key:
-        user: "{{ awx_user }}"
-        state: present
-        key: "{{ lookup('file', '/runner/artifacts/' + ansible_job_id + '/ssh_key_data.pub') }}"
-        comment: "AWX automation key - managed by Ansible"
-        exclusive: false
-      register: ssh_key_result
-      failed_when: false
-
     - name: Verify SSH service is running
       ansible.builtin.systemd:
         name: ssh
