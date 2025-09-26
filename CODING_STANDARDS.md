@@ -142,6 +142,7 @@ Use these tools to maintain standards:
 - `pylint` - Python code quality checking (configured via `.pylintrc`)
 - `ansible-lint` - Ansible playbook linting (configured via `.ansible-lint`)
 - Spell checkers for documentation
+- `yamllint` - YAML file linting (check workflow files)
 
 ## Version History
 

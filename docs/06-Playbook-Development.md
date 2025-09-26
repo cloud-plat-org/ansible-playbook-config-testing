@@ -60,6 +60,17 @@ ansible-lint configure_new_wsl_instances.yml
 # Check playbook syntax
 ansible-playbook --syntax-check test_service_lifecycle.yml
 ```
+### YAML Linting
+```bash
+# Install and use yamllint
+pip install yamllint
+
+# Check workflow files
+yamllint .github/workflows/ansible-ci.yml
+
+# Check all YAML files
+yamllint .
+```
 
 ## Best Practices
 
