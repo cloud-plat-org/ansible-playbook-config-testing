@@ -2,15 +2,15 @@
 - name: Configure new WSL instances for AWX management
   hosts: all
   become: true
-  become_method: sudo
+  become_method: ansible.builtin.sudo
   gather_facts: true
   vars:
     # Users configuration
     awx_user: "daniv"
-    
+
     # Sudoers configuration options
     sudoers_type: "full"  # Options: "full", "systemctl", "minimal"
-    
+
     # Essential packages to install
     essential_packages:
       - curl
@@ -25,7 +25,7 @@
 
   tasks:
     - name: Display target host information
-      debug:
+      ansible.builtin.debug:
         msg: |
           Configuring host: {{ inventory_hostname }}
           Hostname: {{ ansible_hostname | default('unknown') }}
@@ -33,14 +33,14 @@
           SSH Port: {{ ansible_port | default('22') }}
 
     - name: Update package cache
-      apt:
+      ansible.builtin.apt:
         update_cache: true
         cache_valid_time: 3600
       register: apt_update
       failed_when: false
 
     - name: Upgrade system packages
-      apt:
+      ansible.builtin.apt:
         upgrade: safe
         autoremove: true
         autoclean: true
@@ -48,14 +48,14 @@
       failed_when: false
 
     - name: Install essential packages
-      apt:
+      ansible.builtin.apt:
         name: "{{ essential_packages }}"
         state: present
       register: package_install
       failed_when: false
 
     - name: Configure passwordless sudo (Full access)
-      copy:
+      ansible.builtin.copy:
         content: "{{ awx_user }} ALL=(ALL) NOPASSWD: ALL\n"
         dest: "/etc/sudoers.d/{{ awx_user }}-nopasswd"
         mode: '0440'
@@ -66,7 +66,7 @@
       register: sudoers_full
 
     - name: Configure passwordless sudo (systemctl only)
-      copy:
+      ansible.builtin.copy:
         content: |
           {{ awx_user }} ALL=(ALL) NOPASSWD: /bin/systemctl stop *, /bin/systemctl start *, /bin/systemctl restart *, /bin/systemctl status *, /bin/systemctl enable *, /bin/systemctl disable *
         dest: "/etc/sudoers.d/{{ awx_user }}-systemctl"
@@ -78,7 +78,7 @@
       register: sudoers_systemctl
 
     - name: Configure passwordless sudo (minimal - service management only)
-      copy:
+      ansible.builtin.copy:
         content: |
           {{ awx_user }} ALL=(ALL) NOPASSWD: /bin/systemctl stop cron, /bin/systemctl start cron, /bin/systemctl restart cron, /bin/systemctl status cron
           {{ awx_user }} ALL=(ALL) NOPASSWD: /bin/systemctl stop systemd-resolved, /bin/systemctl start systemd-resolved, /bin/systemctl restart systemd-resolved, /bin/systemctl status systemd-resolved
@@ -92,7 +92,7 @@
       register: sudoers_minimal
 
     - name: Test passwordless sudo access
-      command: sudo -n whoami
+      ansible.builtin.command: sudo -n whoami
       become: false
       register: sudo_test
       failed_when: false
@@ -128,26 +128,26 @@
       failed_when: false
 
     - name: Verify SSH service is running
-      systemd:
+      ansible.builtin.systemd:
         name: ssh
         state: started
         enabled: true
       register: ssh_service
 
     - name: Get SSH service status
-      command: systemctl status ssh --no-pager -l
+      ansible.builtin.command: systemctl status ssh --no-pager -l
       register: ssh_status
       changed_when: false
       failed_when: false
 
     - name: Verify SSH is listening on correct port
-      command: "netstat -tlnp | grep :{{ ansible_port | default('22') }}"
+      ansible.builtin.command: "netstat -tlnp | grep :{{ ansible_port | default('22') }}"
       register: ssh_port_check
       changed_when: false
       failed_when: false
 
     - name: Create system info summary
-      set_fact:
+      ansible.builtin.set_fact:
         system_summary:
           hostname: "{{ ansible_hostname | default('unknown') }}"
           distribution: "{{ ansible_distribution | default('unknown') }} {{ ansible_distribution_version | default('') }}"
@@ -161,10 +161,10 @@
           ssh_key_managed: "{{ ssh_key_result.changed | default(false) }}"
 
     - name: Display configuration summary
-      debug:
+      ansible.builtin.debug:
         msg: |
           [SUCCESS] Configuration Summary for {{ inventory_hostname }}:
-          
+
           System: {{ system_summary.hostname }} ({{ system_summary.distribution }})
           SSH Port: {{ system_summary.ssh_port }}
           SSH Service: {{ system_summary.ssh_service }}
@@ -174,53 +174,53 @@
           Timezone Configured: {{ system_summary.timezone_configured }}
           Kernel Optimized: {{ system_summary.sysctl_optimized }}
           SSH Keys Managed: {{ system_summary.ssh_key_managed }}
-          
-          Status: Ready for AWX service management! 
+
+          Status: Ready for AWX service management!
 
 - name: Test service management capabilities
   hosts: ubuntuAWX,argo_cd_mgt
   become: true
-  become_method: sudo
+  become_method: ansible.builtin.sudo
   gather_facts: false
   vars:
     test_service: "cron"
-    
+
   tasks:
     - name: Test service management - Get current status
-      systemd:
+      ansible.builtin.systemd:
         name: "{{ test_service }}"
       register: initial_status
       failed_when: false
 
     - name: Test service management - Stop service
-      systemd:
+      ansible.builtin.systemd:
         name: "{{ test_service }}"
         state: stopped
       register: stop_result
       failed_when: false
 
-    - name: Test service management - Start service  
-      systemd:
+    - name: Test service management - Start service
+      ansible.builtin.systemd:
         name: "{{ test_service }}"
         state: started
       register: start_result
       failed_when: false
 
     - name: Test service management - Verify final status
-      systemd:
+      ansible.builtin.systemd:
         name: "{{ test_service }}"
       register: final_status
       failed_when: false
 
     - name: Display service management test results
-      debug:
+      ansible.builtin.debug:
         msg: |
           Service Management Test Results Service Management Test Results for {{ inventory_hostname }}:
-          
+
           Service: {{ test_service }}
           Initial State: {{ initial_status.status.ActiveState | default('unknown') }}
           Stop Operation: {{ 'SUCCESS' if stop_result.changed else 'FAILED' }}
           Start Operation: {{ 'SUCCESS' if start_result.changed else 'FAILED' }}
           Final State: {{ final_status.status.ActiveState | default('unknown') }}
-          
+
           Result: {{ 'PASS [SUCCESS]' if (final_status.status.ActiveState == 'active') else 'FAIL FAIL' }}

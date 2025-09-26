@@ -96,11 +96,15 @@ awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" job stdout "$JOB_
 
 ### 1. Ansible Lint (Already Configured)
 ```bash
+# Install ansible-lint in venv:
+pip install ansible-lint
+
 # Check if ansible-lint is available
 ansible-lint --version
 
 # Lint current playbook
 ansible-lint test_service_lifecycle.yml
+ansible-lint configure_new_wsl_instances.yml
 
 # Lint with specific rules
 ansible-lint --skip-list yaml[line-length],name[casing] test_service_lifecycle.yml
