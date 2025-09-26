@@ -89,6 +89,13 @@ echo "Group ID: $GROUP_ID"
 
 ### 1. Add Ubuntu-24.04 Host
 ```bash
+
+# List all hosts in the WSL Lab inventory
+awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" host list --inventory "WSL Lab" | jq '.results[] | {name, ansible_host, ansible_port, variables}'
+
+# Or list ALL hosts across all inventories
+awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" host list | jq '.results[] | {name: .name, inventory: .summary_fields.inventory.name, variables: .variables}'
+
 # Add Ubuntu-24.04 host
 awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" host create \
   --name wslubuntu1 \
