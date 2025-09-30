@@ -1,0 +1,183 @@
+---
+- name: Patch Linux instances (WSL Ubuntu/Kali)
+  hosts: all
+  become: true
+  become_method: ansible.builtin.sudo
+  gather_facts: true
+  vars:
+    # Patching configuration
+    reboot_after_patch: false  # Set to true to reboot after patching
+    cleanup_after_patch: true  # Clean up package cache after patching
+    security_updates_only: false  # Set to true for security updates only
+    
+    # Package management
+    update_package_cache: true
+    upgrade_packages: true
+    autoremove_packages: true
+    
+    # Logging
+    patch_log_dir: "/var/log/ansible-patching"
+    patch_log_file: "{{ patch_log_dir }}/patch-{{ ansible_date_time.epoch }}.log"
+
+  pre_tasks:
+    - name: Create patch log directory
+      ansible.builtin.file:
+        path: "{{ patch_log_dir }}"
+        state: directory
+        mode: '0755'
+        owner: root
+        group: root
+
+    - name: Log patch start
+      ansible.builtin.lineinfile:
+        path: "{{ patch_log_file }}"
+        line: "=== PATCH STARTED {{ ansible_date_time.iso8601 }} on {{ inventory_hostname }} ==="
+        create: yes
+        mode: '0644'
+
+    - name: Gather system information before patching
+      ansible.builtin.shell: |
+        echo "=== SYSTEM INFO BEFORE PATCHING ===" >> {{ patch_log_file }}
+        echo "Hostname: $(hostname)" >> {{ patch_log_file }}
+        echo "Uptime: $(uptime)" >> {{ patch_log_file }}
+        echo "Kernel: $(uname -r)" >> {{ patch_log_file }}
+        echo "OS: $(lsb_release -d 2>/dev/null || cat /etc/os-release | grep PRETTY_NAME)" >> {{ patch_log_file }}
+        echo "Available updates:" >> {{ patch_log_file }}
+        apt list --upgradable 2>/dev/null | wc -l >> {{ patch_log_file }}
+        echo "" >> {{ patch_log_file }}
+      args:
+        executable: /bin/bash
+
+  tasks:
+    - name: Update package cache
+      ansible.builtin.apt:
+        update_cache: "{{ update_package_cache }}"
+        cache_valid_time: 3600
+      when: update_package_cache
+      register: apt_update_result
+
+    - name: Log package cache update result
+      ansible.builtin.lineinfile:
+        path: "{{ patch_log_file }}"
+        line: "Package cache update: {{ 'SUCCESS' if apt_update_result.changed else 'NO CHANGES' }}"
+        create: yes
+
+    - name: Check for available updates
+      ansible.builtin.shell: |
+        apt list --upgradable 2>/dev/null | grep -v "Listing..." | wc -l
+      register: available_updates
+      changed_when: false
+
+    - name: Log available updates count
+      ansible.builtin.lineinfile:
+        path: "{{ patch_log_file }}"
+        line: "Available updates: {{ available_updates.stdout }} packages"
+        create: yes
+
+    - name: Upgrade all packages
+      ansible.builtin.apt:
+        upgrade: dist
+        autoremove: "{{ autoremove_packages }}"
+        autoclean: "{{ cleanup_after_patch }}"
+      when: upgrade_packages and available_updates.stdout|int > 0
+      register: apt_upgrade_result
+
+    - name: Log upgrade result
+      ansible.builtin.lineinfile:
+        path: "{{ patch_log_file }}"
+        line: "Package upgrade: {{ 'SUCCESS - ' + apt_upgrade_result.changed|string + ' packages changed' if apt_upgrade_result is defined else 'NO UPDATES AVAILABLE' }}"
+        create: yes
+
+    - name: Install security updates only (alternative to full upgrade)
+      ansible.builtin.apt:
+        upgrade: safe
+        autoremove: "{{ autoremove_packages }}"
+        autoclean: "{{ cleanup_after_patch }}"
+      when: security_updates_only and not upgrade_packages
+      register: apt_security_upgrade_result
+
+    - name: Log security upgrade result
+      ansible.builtin.lineinfile:
+        path: "{{ patch_log_file }}"
+        line: "Security upgrade: {{ 'SUCCESS - ' + apt_security_upgrade_result.changed|string + ' packages changed' if apt_security_upgrade_result is defined else 'NO SECURITY UPDATES' }}"
+        create: yes
+      when: security_updates_only
+
+    - name: Clean package cache
+      ansible.builtin.apt:
+        autoclean: yes
+        autoremove: "{{ autoremove_packages }}"
+      when: cleanup_after_patch
+      register: apt_cleanup_result
+
+    - name: Log cleanup result
+      ansible.builtin.lineinfile:
+        path: "{{ patch_log_file }}"
+        line: "Package cleanup: {{ 'SUCCESS' if apt_cleanup_result.changed else 'NO CLEANUP NEEDED' }}"
+        create: yes
+      when: cleanup_after_patch
+
+    - name: Check if reboot is required
+      ansible.builtin.stat:
+        path: /var/run/reboot-required
+      register: reboot_required_file
+
+    - name: Log reboot requirement
+      ansible.builtin.lineinfile:
+        path: "{{ patch_log_file }}"
+        line: "Reboot required: {{ 'YES' if reboot_required_file.stat.exists else 'NO' }}"
+        create: yes
+
+    - name: Reboot system if required and configured
+      ansible.builtin.reboot:
+        reboot_timeout: 300
+        test_command: uptime
+      when: reboot_after_patch and reboot_required_file.stat.exists
+      register: reboot_result
+
+    - name: Log reboot result
+      ansible.builtin.lineinfile:
+        path: "{{ patch_log_file }}"
+        line: "System reboot: {{ 'SUCCESS' if reboot_result is defined and reboot_result.changed else 'NOT PERFORMED' }}"
+        create: yes
+      when: reboot_after_patch
+
+  post_tasks:
+    - name: Gather system information after patching
+      ansible.builtin.shell: |
+        echo "=== SYSTEM INFO AFTER PATCHING ===" >> {{ patch_log_file }}
+        echo "Hostname: $(hostname)" >> {{ patch_log_file }}
+        echo "Uptime: $(uptime)" >> {{ patch_log_file }}
+        echo "Kernel: $(uname -r)" >> {{ patch_log_file }}
+        echo "OS: $(lsb_release -d 2>/dev/null || cat /etc/os-release | grep PRETTY_NAME)" >> {{ patch_log_file }}
+        echo "Remaining updates:" >> {{ patch_log_file }}
+        apt list --upgradable 2>/dev/null | wc -l >> {{ patch_log_file }}
+        echo "" >> {{ patch_log_file }}
+      args:
+        executable: /bin/bash
+
+    - name: Log patch completion
+      ansible.builtin.lineinfile:
+        path: "{{ patch_log_file }}"
+        line: "=== PATCH COMPLETED {{ ansible_date_time.iso8601 }} on {{ inventory_hostname }} ==="
+        create: yes
+
+    - name: Display patch summary
+      ansible.builtin.debug:
+        msg: |
+          PATCH SUMMARY for {{ inventory_hostname }}:
+          - Available updates: {{ available_updates.stdout }} packages
+          - Upgrade performed: {{ 'YES' if (apt_upgrade_result is defined and apt_upgrade_result.changed) or (apt_security_upgrade_result is defined and apt_security_upgrade_result.changed) else 'NO' }}
+          - Reboot required: {{ 'YES' if reboot_required_file.stat.exists else 'NO' }}
+          - Reboot performed: {{ 'YES' if reboot_after_patch and reboot_required_file.stat.exists else 'NO' }}
+          - Log file: {{ patch_log_file }}
+
+  handlers:
+    - name: restart services after patch
+      ansible.builtin.systemd:
+        name: "{{ item }}"
+        state: restarted
+      loop:
+        - ssh
+        - systemd-resolved
+      when: not reboot_after_patch
