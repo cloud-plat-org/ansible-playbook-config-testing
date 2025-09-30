@@ -11,3 +11,7 @@ collections:
     
   - name: ansible.posix
     version: ">=1.5.0"
+    
+  # Collection for AWX/Tower management
+  - name: awx.awx
+    version: ">=21.0.0"
