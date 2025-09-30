@@ -1,0 +1,74 @@
+---
+- name: Manage AWX Job Templates
+  hosts: localhost
+  gather_facts: false
+  vars:
+    awx_host: "https://localhost"
+    awx_validate_certs: false
+    # AWX token should be set via environment variable AWX_OAUTH_TOKEN
+    # or passed as extra vars: -e "awx_token=your_token"
+    
+  tasks:
+    - name: Create Linux Patching job template
+      awx.awx.job_template:
+        name: "Linux Patching"
+        description: "Patch Linux WSL instances with apt updates"
+        job_type: "run"
+        inventory: "WSL Instances"
+        project: "WSL Project"
+        playbook: "patching_linux.yml"
+        credential: "WSL SSH Key"
+        become_enabled: true
+        ask_variables_on_launch: true
+        extra_vars:
+          reboot_after_patch: false
+          cleanup_after_patch: true
+          security_updates_only: false
+        controller_host: "{{ awx_host }}"
+        controller_oauthtoken: "{{ awx_token | default(lookup('env', 'AWX_OAUTH_TOKEN')) }}"
+        validate_certs: "{{ awx_validate_certs }}"
+        state: present
+      register: patching_template
+
+    - name: Create Service Lifecycle job template
+      awx.awx.job_template:
+        name: "Test Service Lifecycle WSL"
+        description: "Test service lifecycle management on WSL instances"
+        job_type: "run"
+        inventory: "WSL Instances"
+        project: "WSL Project"
+        playbook: "test_service_lifecycle.yml"
+        credential: "WSL SSH Key"
+        become_enabled: true
+        ask_variables_on_launch: true
+        extra_vars:
+          target_service: "cron"
+        controller_host: "{{ awx_host }}"
+        controller_oauthtoken: "{{ awx_token | default(lookup('env', 'AWX_OAUTH_TOKEN')) }}"
+        validate_certs: "{{ awx_validate_certs }}"
+        state: present
+      register: service_template
+
+    - name: Create WSL Configuration job template
+      awx.awx.job_template:
+        name: "Configure New WSL Instances"
+        description: "Configure new WSL instances with essential packages and settings"
+        job_type: "run"
+        inventory: "WSL Instances"
+        project: "WSL Project"
+        playbook: "configure_new_wsl_instances.yml"
+        credential: "WSL SSH Key"
+        become_enabled: true
+        ask_variables_on_launch: false
+        controller_host: "{{ awx_host }}"
+        controller_oauthtoken: "{{ awx_token | default(lookup('env', 'AWX_OAUTH_TOKEN')) }}"
+        validate_certs: "{{ awx_validate_certs }}"
+        state: present
+      register: config_template
+
+    - name: Display created job templates
+      ansible.builtin.debug:
+        msg:
+          - "Linux Patching template: {{ patching_template.id | default('already exists') }}"
+          - "Service Lifecycle template: {{ service_template.id | default('already exists') }}"
+          - "WSL Configuration template: {{ config_template.id | default('already exists') }}"
