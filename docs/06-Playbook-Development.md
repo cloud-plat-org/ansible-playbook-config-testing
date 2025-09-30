@@ -18,11 +18,11 @@ awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" project get "$PRO
 ## Playbook Development
 
 ### Current Working Playbook Structure
-Our current setup uses a role-based approach with the `service_management` role. The `test_service_lifecycle.yml` playbook is already created and working.
+Our current setup uses a collection-based approach with modern Ansible collections. The `test_service_lifecycle.yml` playbook is already created and working.
 
 **Key Features:**
 - **Flexible Service Testing**: Uses `target_service` variable to test any service
-- **Role-Based Architecture**: Leverages the `service_management` role for reusability
+- **Collection-Based Architecture**: Leverages modern Ansible collections for enhanced functionality
 - **Safe Defaults**: Defaults to `cron` service (won't break SSH connectivity)
 - **Complete Lifecycle**: Stop -> Wait -> Start -> Verify
 
@@ -46,6 +46,18 @@ awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" job stdout "$JOB_
 ```
 
 ## Development Tools
+
+### Collection Management
+```bash
+# Install required collections
+ansible-galaxy collection install -r requirements.yml
+
+# List installed collections
+ansible-galaxy collection list
+
+# Update collections
+ansible-galaxy collection install -r requirements.yml --force
+```
 
 ### Ansible Lint
 ```bash
@@ -74,6 +86,19 @@ yamllint .
 
 ## Best Practices
 
+### Collection Usage
+```yaml
+# Use FQCN (Fully Qualified Collection Names) for modules
+- name: Install packages
+  ansible.builtin.apt:
+    name: "{{ essential_packages }}"
+    state: present
+
+- name: Configure timezone
+  community.general.timezone:
+    name: "{{ timezone | default('UTC') }}"
+```
+
 ### Variable Usage
 ```yaml
 # Use flexible variables with defaults
@@ -86,17 +111,21 @@ vars:
 ```yaml
 # Always handle potential failures
 - name: Stop service
-  command: systemctl stop {{ service_name }}
+  ansible.builtin.systemd:
+    name: "{{ service_name }}"
+    state: stopped
   register: stop_result
-  ignore_errors: true
+  failed_when: false
 ```
 
 ## Verification Checklist
 
 Before proceeding to testing, verify:
+- [ ] Required collections are installed (`community.general`, `ansible.posix`, `awx.awx`)
 - [ ] AWX project is configured with correct repository and branch
 - [ ] Test inventory contains both WSL instances
 - [ ] SSH credentials are properly configured in AWX
 - [ ] Current playbook is syntactically correct
+- [ ] Playbook uses FQCN for all modules
 - [ ] Playbook uses flexible variables
 - [ ] AWX project sync is working
