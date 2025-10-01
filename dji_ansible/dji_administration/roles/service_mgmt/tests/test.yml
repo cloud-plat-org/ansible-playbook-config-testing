@@ -4,7 +4,7 @@
   become: true
   become_method: ansible.builtin.sudo
   roles:
-    - role: service_mgmt
+    - role: .  # Reference current directory
       vars:
         service_name: cron
         service_state: stopped

@@ -112,3 +112,8 @@ dji_ansible/dji_administration/
 │   └── collections.md
 └── LICENSE
 ```
+
+## Documentation
+
+- [Collection Development Guide](collections.md) - This file
+- [Galaxy Tagging Guide](galaxy_tagging.md) - Tag requirements and selection
