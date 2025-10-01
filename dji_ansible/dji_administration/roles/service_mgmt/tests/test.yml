@@ -1,4 +1,4 @@
-# SPDX-License-Identifier: MIT-0
+# git SPDX-License-Identifier: MIT-0
 ---
 - name: Test service management role
   hosts: localhost
