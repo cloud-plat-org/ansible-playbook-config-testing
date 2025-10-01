@@ -54,42 +54,15 @@
       register: package_install
       failed_when: false
 
-    - name: Configure passwordless sudo (Full access)
-      ansible.builtin.copy:
-        content: "{{ awx_user }} ALL=(ALL) NOPASSWD: ALL\n"
-        dest: "/etc/sudoers.d/{{ awx_user }}-nopasswd"
+    - name: Configure sudoers file
+      ansible.builtin.template:
+        src: sudoers.j2
+        dest: "/etc/sudoers.d/{{ awx_user }}-{{ sudoers_type }}"
         mode: '0440'
         owner: root
         group: root
         validate: 'visudo -cf %s'
-      when: sudoers_type == "full"
-      register: sudoers_full
-
-    - name: Configure passwordless sudo (systemctl only)
-      ansible.builtin.copy:
-        content: |
-          {{ awx_user }} ALL=(ALL) NOPASSWD: /bin/systemctl stop *, /bin/systemctl start *, /bin/systemctl restart *, /bin/systemctl status *, /bin/systemctl enable *, /bin/systemctl disable *
-        dest: "/etc/sudoers.d/{{ awx_user }}-systemctl"
-        mode: '0440'
-        owner: root
-        group: root
-        validate: 'visudo -cf %s'
-      when: sudoers_type == "systemctl"
-      register: sudoers_systemctl
-
-    - name: Configure passwordless sudo (minimal - service management only)
-      ansible.builtin.copy:
-        content: |
-          {{ awx_user }} ALL=(ALL) NOPASSWD: /bin/systemctl stop cron, /bin/systemctl start cron, /bin/systemctl restart cron, /bin/systemctl status cron
-          {{ awx_user }} ALL=(ALL) NOPASSWD: /bin/systemctl stop systemd-resolved, /bin/systemctl start systemd-resolved, /bin/systemctl restart systemd-resolved, /bin/systemctl status systemd-resolved
-          {{ awx_user }} ALL=(ALL) NOPASSWD: /bin/systemctl stop systemd-networkd, /bin/systemctl start systemd-networkd, /bin/systemctl restart systemd-networkd, /bin/systemctl status systemd-networkd
-        dest: "/etc/sudoers.d/{{ awx_user }}-minimal"
-        mode: '0440'
-        owner: root
-        group: root
-        validate: 'visudo -cf %s'
-      when: sudoers_type == "minimal"
-      register: sudoers_minimal
+      register: sudoers_result
 
     - name: Test passwordless sudo access
       ansible.builtin.command: sudo -n whoami
@@ -145,7 +118,7 @@
           ssh_service: "{{ ssh_service.state | default('unknown') }}"
           sudo_access: "{{ sudo_test.rc == 0 }}"
           packages_updated: "{{ package_install.changed | default(false) }}"
-          sudoers_configured: "{{ (sudoers_full.changed | default(false)) or (sudoers_systemctl.changed | default(false)) or (sudoers_minimal.changed | default(false)) }}"
+          sudoers_configured: "{{ sudoers_result.changed | default(false) }}"
           timezone_configured: "{{ timezone_result.changed | default(false) }}"
           sysctl_optimized: "{{ sysctl_result.changed | default(false) }}"
           ssh_key_managed: "{{ ssh_key_result.changed | default(false) }}"
