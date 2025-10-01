@@ -19,9 +19,18 @@ Fill out galaxy.yml file with pertinent information.
     my_namespace/my_collection/galaxy.yml
 
 
+# Step 4
+
+Create a role named `services_mgmt` with scaffolding by running the following commands:
+
+```bash
+cd dji_ansible/dji_administration/roles/
+ansible-galaxy role init services_mgmt
+```
+
 This creates a complete role structure with all necessary directories and files.
 
-# Step 4
+# Step 5
 
 Build the collection:
 
@@ -30,19 +39,21 @@ cd dji_ansible/dji_administration/
 ansible-galaxy collection build
 ```
 
-
-
-
-
-
-
-
-
-# Step ###
+# Step 6
 
 Install the collection locally:
 
 ```bash
 ansible-galaxy collection install dji_ansible-dji_administration-1.0.0.tar.gz
 ```
+
+
+
+
+
+
+
+
+
+
 
