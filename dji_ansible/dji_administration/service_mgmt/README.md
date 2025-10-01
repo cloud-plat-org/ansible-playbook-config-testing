@@ -1,6 +1,6 @@
 # Service Management Role
 
-A simple Ansible role for managing system services (start, stop, restart, status).
+A simple Ansible role for managing system services (start, stop, restart, status).git 
 
 ## Description
 
