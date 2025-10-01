@@ -1,4 +1,5 @@
-#SPDX-License-Identifier: MIT-0
+---
+# SPDX-License-Identifier: MIT-0
 galaxy_info:
   author: Dan Iverson
   description: Manage system services (start, stop, restart, status)
@@ -21,8 +22,14 @@ galaxy_info:
 
   platforms:
     - name: Ubuntu
-    - name: Kali Linux
-
+      versions:
+        - focal
+        - jammy
+        - noble
+    - name: Debian
+      versions:
+        - bullseye
+        - bookworm
 
   # If this a Container Enabled role, provide the minimum Ansible Container version.
   # min_ansible_container_version:

@@ -1,3 +1,4 @@
+---
 # SPDX-License-Identifier: MIT-0
 ### REQUIRED
 # The namespace of the collection. This can be a company/brand/organization or product namespace under which all
@@ -19,7 +20,6 @@ readme: README.md
 authors:
   - Dan Iverson <daniverson@hotmail.com>
 
-
 ### OPTIONAL but strongly recommended
 # A short summary description of the collection
 description: Ansible collection for testing and stopping services
@@ -36,13 +36,11 @@ license_file: LICENSE
 # A list of tags you want to associate with the collection for indexing/searching. A tag name has the same character
 # requirements as 'namespace' and 'name'
 tags: [infrastructure, linux, tools]
-
 # Collections that this collection requires to be installed for it to be usable. The key of the dict is the
 # collection label 'namespace.name'. The value is a version range
 # L(specifiers,https://python-semanticversion.readthedocs.io/en/latest/#requirement-specification). Multiple version
 # range specifiers can be set and are separated by ','
 dependencies: {}
-
 # The URL of the originating SCM repository
 repository: https://github.com/cloud-plat-org/ansible-playbook-config-testing
 

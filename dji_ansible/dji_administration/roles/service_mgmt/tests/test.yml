@@ -1,10 +1,11 @@
-#SPDX-License-Identifier: MIT-0
+# SPDX-License-Identifier: MIT-0
 ---
-- hosts: localhost
+- name: Test service management role
+  hosts: localhost
   become: true
   become_method: ansible.builtin.sudo
   roles:
-    - role: .  # Reference current directory
+    - role: . # Reference current directory
       vars:
         service_name: cron
         service_state: stopped
