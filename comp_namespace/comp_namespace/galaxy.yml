@@ -1,4 +1,4 @@
-#SPDX-License-Identifier: MIT-0
+#SPDX-License-Identifier: MIT
 ### REQUIRED
 # The namespace of the collection. This can be a company/brand/organization or product namespace under which all
 # content lives. May only contain alphanumeric lowercase characters and underscores. Namespaces cannot start with
@@ -26,12 +26,12 @@ description: Ansible collection for testing and stopping services
 
 # Either a single license or a list of licenses for content inside of a collection. Ansible Galaxy currently only
 # accepts L(SPDX,https://spdx.org/licenses/) licenses. This key is mutually exclusive with 'license_file'
-license:
-- GPL-2.0-or-later
+# license:
+# - MIT
 
 # The path to the license file for the collection. This path is relative to the root of the collection. This key is
 # mutually exclusive with 'license'
-license_file: 'comp_namespace/comp_namespace/LICENSE'
+license_file: LICENSE
 
 # A list of tags you want to associate with the collection for indexing/searching. A tag name has the same character
 # requirements as 'namespace' and 'name'
@@ -47,7 +47,7 @@ dependencies: {}
 repository: https://github.com/cloud-plat-org/ansible-playbook-config-testing
 
 # The URL to any online docs
-documentation: comp_namespace/comp_namespace/README.md
+documentation: https://github.com/cloud-plat-org/ansible-playbook-config-testing/blob/main/comp_namespace/comp_namespace/README.md
 
 # The URL to the homepage of the collection/project
 homepage: https://github.com/cloud-plat-org/ansible-playbook-config-testing
