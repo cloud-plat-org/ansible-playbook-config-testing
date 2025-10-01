@@ -1,3 +1,11 @@
 #SPDX-License-Identifier: MIT-0
 ---
-# tasks file for services_mgmt
+- name: Stop service "{{ service_name }}", if started
+  ansible.builtin.service:
+    name: {{ service_name }}
+    state: stopped
+  register: stop_result
+
+- name: Show service output
+  ansible.builtin.debug:
+    msg: "{{ stop_result }}"

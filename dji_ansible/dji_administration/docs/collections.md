@@ -30,22 +30,15 @@ ansible-galaxy role init services_mgmt
 
 This creates a complete role structure with all necessary directories and files.
 
-# Step 5
+## Next Steps
 
-Build the collection:
+After creating your role, you can:
+- Add tasks to `roles/services_mgmt/tasks/main.yml`
+- Define variables in `roles/services_mgmt/defaults/main.yml`
+- Create templates in `roles/services_mgmt/templates/`
+- Add handlers in `roles/services_mgmt/handlers/main.yml`
 
-```bash
-cd dji_ansible/dji_administration/
-ansible-galaxy collection build
-```
-
-# Step 6
-
-Install the collection locally:
-
-```bash
-ansible-galaxy collection install dji_ansible-dji_administration-1.0.0.tar.gz
-```
+Once you've developed your role content, you can then build and install the collection.
 
 
 
