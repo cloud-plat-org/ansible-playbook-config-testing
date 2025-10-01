@@ -1,6 +1,10 @@
 #SPDX-License-Identifier: MIT-0
 ---
 - hosts: localhost
-  remote_user: root
+  become: true
+  become_method: ansible.builtin.sudo
   roles:
-    - services_mgmt
+    - role: service_mgmt
+      vars:
+        service_name: cron
+        service_state: stopped

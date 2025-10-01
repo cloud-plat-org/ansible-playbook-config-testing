@@ -1,3 +1,12 @@
 #SPDX-License-Identifier: MIT-0
 ---
-# handlers file for services_mgmt
+# handlers file for service_mgmt
+- name: restart service
+  ansible.builtin.service:
+    name: "{{ service_name }}"
+    state: restarted
+  register: restart_result
+
+- name: Show service output
+  ansible.builtin.debug:
+    msg: "{{ restart_result }}"

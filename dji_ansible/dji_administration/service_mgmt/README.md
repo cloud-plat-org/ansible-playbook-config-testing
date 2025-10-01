@@ -1,38 +1,91 @@
-Role Name
-=========
+# Service Management Role
 
-A brief description of the role goes here.
+A simple Ansible role for managing system services (start, stop, restart, status).
 
-Requirements
-------------
+## Description
 
-Any pre-requisites that may not be covered by Ansible itself or the role should be mentioned here. For instance, if the role uses the EC2 module, it may be a good idea to mention in this section that the boto package is required.
+This role provides a standardized way to manage system services across different Linux distributions. It uses the built-in `ansible.builtin.service` module to handle service operations.
 
-Role Variables
---------------
+## Requirements
 
-A description of the settable variables for this role should go here, including any variables that are in defaults/main.yml, vars/main.yml, and any variables that can/should be set via parameters to the role. Any variables that are read from other roles and/or the global scope (ie. hostvars, group vars, etc.) should be mentioned here as well.
+- Ansible 2.15.0 or higher
+- Target systems must use systemd (systemctl)
+- Root privileges (use `become: true`)
 
-Dependencies
-------------
+## Role Variables
 
-A list of other roles hosted on Galaxy should go here, plus any details in regards to parameters that may need to be set for other roles, or variables that are used from other roles.
+Available variables are listed below, along with default values:
 
-Example Playbook
-----------------
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `service_name` | `cron` | Name of the service to manage |
+| `service_state` | `stopped` | Desired state of the service (`started`, `stopped`, `restarted`, `reloaded`) |
 
-Including an example of how to use your role (for instance, with variables passed in as parameters) is always nice for users too:
+## Dependencies
 
-    - hosts: servers
-      roles:
-         - { role: username.rolename, x: 42 }
+None. This role uses only Ansible built-in modules.
 
-License
--------
+## Example Playbooks
 
-BSD
+### Basic Usage
 
-Author Information
-------------------
+```yaml
+---
+- hosts: localhost
+  become: true
+  roles:
+    - role: service_mgmt
+      vars:
+        service_name: nginx
+        service_state: started
+```
 
-An optional section for the role authors to include contact information, or a website (HTML is not allowed).
+### Stop a Service
+
+```yaml
+---
+- hosts: webservers
+  become: true
+  roles:
+    - role: service_mgmt
+      vars:
+        service_name: apache2
+        service_state: stopped
+```
+
+### Restart Multiple Services
+
+```yaml
+---
+- hosts: all
+  become: true
+  tasks:
+    - name: Restart SSH service
+      include_role:
+        name: service_mgmt
+      vars:
+        service_name: ssh
+        service_state: restarted
+    
+    - name: Restart NTP service
+      include_role:
+        name: service_mgmt
+      vars:
+        service_name: ntp
+        service_state: restarted
+```
+
+## Platform Support
+
+- Debian 12
+- Ubuntu 20.04, 22.04, 24.04
+- RHEL/CentOS 8, 9
+- Kali Linux Rolling
+
+## License
+
+MIT-0
+
+## Author Information
+
+Created by Dan Iverson - Your Computer Guy
