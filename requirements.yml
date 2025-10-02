@@ -14,5 +14,5 @@ collections:
     
   # Local collection for service management
   - name: dji_ansible.dji_administration
-    source: "{{ playbook_dir }}/dji_ansible/dji_administration"
+    source: "./dji_ansible/dji_administration"
     type: dir

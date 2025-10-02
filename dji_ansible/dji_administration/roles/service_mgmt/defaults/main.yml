@@ -3,3 +3,4 @@
 # defaults file for service_mgmt
 service_mgmt_service_name: cron
 service_mgmt_service_state: stopped
+service_mgmt_debug_extra: false

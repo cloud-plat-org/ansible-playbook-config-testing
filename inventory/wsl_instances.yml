@@ -27,10 +27,8 @@ all:
         
     service_test_hosts:
       hosts:
-        argo_cd_mgt:
         ubuntuAWX:
-        wslkali1:
-        wslubuntu1:
+
       vars:
         service_mgmt_service_name: cron
         service_mgmt_service_state: stopped
