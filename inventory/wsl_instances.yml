@@ -1,0 +1,40 @@
+# WSL Instances Inventory for AWX
+---
+all:
+  children:
+    wsl_instances:
+      hosts:
+        ubuntuAWX:
+          ansible_host: 192.168.1.100  # Replace with actual IP
+          ansible_port: 2222           # Replace with actual port
+          ansible_user: daniv
+          ansible_ssh_private_key_file: ~/.ssh/id_rsa
+          
+        argo_cd_mgt:
+          ansible_host: 192.168.1.101  # Replace with actual IP
+          ansible_port: 2223           # Replace with actual port
+          ansible_user: daniv
+          ansible_ssh_private_key_file: ~/.ssh/id_rsa
+          
+        # Add more WSL instances as needed
+        # wsl_instance3:
+        #   ansible_host: 192.168.1.102
+        #   ansible_port: 2224
+        #   ansible_user: daniv
+        #   ansible_ssh_private_key_file: ~/.ssh/id_rsa
+          
+      vars:
+        # Common variables for all WSL instances
+        ansible_ssh_common_args: '-o StrictHostKeyChecking=no'
+        ansible_python_interpreter: /usr/bin/python3
+        awx_user: daniv
+        sudoers_type: "systemctl"  # Options: "full", "systemctl", "minimal"
+        
+    # Group for service management testing
+    service_test_hosts:
+      hosts:
+        ubuntuAWX:
+        argo_cd_mgt:
+      vars:
+        service_mgmt_service_name: cron
+        service_mgmt_service_state: stopped

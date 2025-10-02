@@ -1,0 +1,80 @@
+# Service Management Playbook for WSL Instances
+---
+- name: Manage services on WSL instances
+  hosts: service_test_hosts
+  become: true
+  become_method: ansible.builtin.sudo
+  gather_facts: true
+  
+  vars:
+    # Override role defaults
+    service_mgmt_service_name: "{{ service_name | default('cron') }}"
+    service_mgmt_service_state: "{{ service_state | default('stopped') }}"
+    
+  pre_tasks:
+    - name: Display target host information
+      ansible.builtin.debug:
+        msg: |
+          Managing service on: {{ inventory_hostname }}
+          Hostname: {{ ansible_hostname | default('unknown') }}
+          OS: {{ ansible_distribution | default('unknown') }} {{ ansible_distribution_version | default('') }}
+          Service: {{ service_mgmt_service_name }}
+          Desired State: {{ service_mgmt_service_state }}
+    
+    - name: Check if service exists
+      ansible.builtin.command: systemctl list-unit-files {{ service_mgmt_service_name }}.service
+      register: service_exists
+      failed_when: false
+      changed_when: false
+      
+    - name: Display service existence check
+      ansible.builtin.debug:
+        msg: "Service {{ service_mgmt_service_name }} exists: {{ service_exists.rc == 0 }}"
+        
+  roles:
+    - role: dji_ansible.dji_administration.service_mgmt
+      
+  post_tasks:
+    - name: Verify service state
+      ansible.builtin.systemd:
+        name: "{{ service_mgmt_service_name }}"
+      register: final_service_state
+      
+    - name: Display final service state
+      ansible.builtin.debug:
+        msg: |
+          Service Management Results for {{ inventory_hostname }}:
+          Service: {{ service_mgmt_service_name }}
+          Final State: {{ final_service_state.status.ActiveState | default('unknown') }}
+          Sub State: {{ final_service_state.status.SubState | default('unknown') }}
+          Enabled: {{ final_service_state.status.UnitFileState | default('unknown') }}
+          
+- name: Test multiple services
+  hosts: service_test_hosts
+  become: true
+  become_method: ansible.builtin.sudo
+  gather_facts: false
+  
+  tasks:
+    - name: Stop SSH service
+      include_role:
+        name: dji_ansible.dji_administration.service_mgmt
+      vars:
+        service_mgmt_service_name: ssh
+        service_mgmt_service_state: stopped
+      register: ssh_stop_result
+      
+    - name: Start SSH service
+      include_role:
+        name: dji_ansible.dji_administration.service_mgmt
+      vars:
+        service_mgmt_service_name: ssh
+        service_mgmt_service_state: started
+      register: ssh_start_result
+      
+    - name: Display SSH service test results
+      ansible.builtin.debug:
+        msg: |
+          SSH Service Test Results for {{ inventory_hostname }}:
+          Stop Operation: {{ 'SUCCESS' if ssh_stop_result.changed else 'NO CHANGE' }}
+          Start Operation: {{ 'SUCCESS' if ssh_start_result.changed else 'NO CHANGE' }}
