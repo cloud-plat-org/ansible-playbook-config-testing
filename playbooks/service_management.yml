@@ -8,9 +8,10 @@
   
   vars:
     # Override role defaults
-    service_mgmt_service_name: "{{ service_name | default('cron') }}"
-    service_mgmt_service_state: "{{ service_state | default('stopped') }}"
-    service_mgmt_debug_extra: false
+    service_mgmt_service_name: "{{ service_name | default('sshd') }}"
+    # Options: started, stopped, restarted
+    service_mgmt_service_state: "{{ service_state | default('started') }}"
+    service_mgmt_debug_extra: "{{ debug_extra | default(false) }}"
    
   roles:
     - role: dji_ansible.dji_administration.service_mgmt
