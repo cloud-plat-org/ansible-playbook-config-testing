@@ -1,0 +1,31 @@
+name: Service Management Automation
+
+on:
+  push:
+    branches: 
+      - main
+      - CLPLAT-2230
+    paths:
+      - 'playbooks/service_management.yml'
+      - 'dji_ansible/dji_administration/**'
+
+jobs:
+  deploy-service-management:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+      
+    - name: Setup Ansible
+      run: |
+        pip install ansible
+        ansible-galaxy collection install -r requirements.yml
+        
+    - name: Run Service Management Playbook
+      run: |
+        ansible-playbook -i inventory/wsl_instances.yml playbooks/service_management.yml \
+          --limit service_test_hosts \
+          --extra-vars "service_name=cron service_state=started debug_extra=false"
+      env:
+        ANSIBLE_HOST_KEY_CHECKING: False
