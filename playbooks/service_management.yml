@@ -5,18 +5,18 @@
   become: true
   become_method: ansible.builtin.sudo
   gather_facts: true
-  
+
   roles:
     - role: dji_ansible.dji_administration.service_mgmt
       vars:
         service_name: "sshd"
         service_state: "restarted"
-    
+
     - role: dji_ansible.dji_administration.service_mgmt
       vars:
         service_name: "cron"
         service_state: "restarted"
-    
+
     - role: dji_ansible.dji_administration.service_mgmt
       vars:
         service_name: "systemd-resolved"
