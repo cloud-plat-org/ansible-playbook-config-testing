@@ -26,6 +26,8 @@ ssh -i ~/.ssh/awx_wsl_key_traditional -p 2224 daniv@172.22.192.129 "echo 'Kali O
 source ~/awx-venv/bin/activate
 export AWX_TOKEN=$(kubectl get secret awx-admin-password -n awx -o jsonpath='{.data.password}' | base64 -d)
 
+ansible-lint . --exclude docs/ --exclude .github/ -v
+
 # Launch AWX job
 JOB_ID=$(awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" job_template launch \
   --job_template "Test Service Lifecycle WSL" --extra_vars '{"target_service": "cron"}' | jq -r .id)
