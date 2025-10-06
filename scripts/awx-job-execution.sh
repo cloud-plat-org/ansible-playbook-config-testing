@@ -1,6 +1,16 @@
 #!/bin/bash
 # AWX Job Execution Script
 # Usage: ./scripts/awx-job-execution.sh
+#
+# IMPORTANT: SSH Credential Setup
+# This script uses credential ID 9 "WSL SSH KEY" which contains the awx_wsl_key_traditional
+# The SSH credential MUST be created manually through the AWX web interface:
+# 1. Go to AWX Web UI -> Credentials -> Add
+# 2. Select "Machine" credential type
+# 3. Name: "WSL SSH KEY"
+# 4. Username: "daniv"
+# 5. SSH Private Key: Copy content from ~/.ssh/awx_wsl_key_traditional
+# CLI credential creation fails due to SSH key formatting issues
 
 # Activate AWX virtual environment
 source ~/awx-venv/bin/activate
@@ -42,7 +52,7 @@ launch_job() {
     
     JOB_ID=$(awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" job_templates launch \
       --job_template "$JOB_TEMPLATE_NAME" \
-      --credentials 6 \
+      --credentials 9 \
       --extra_vars "$EXTRA_VARS" | jq -r .id)
     
     echo "Job ID: $JOB_ID"
@@ -57,7 +67,7 @@ launch_job_with_limit() {
     
     JOB_ID=$(awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" job_templates launch \
       --job_template "$JOB_TEMPLATE_NAME" \
-      --credentials 6 \
+      --credentials 9 \
       --limit "$HOST_GROUP" \
       --extra_vars "$EXTRA_VARS" | jq -r .id)
     
@@ -74,7 +84,7 @@ launch_job_with_inventory() {
     
     JOB_ID=$(awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" job_templates launch \
       --job_template "$JOB_TEMPLATE_NAME" \
-      --credentials 6 \
+      --credentials 9 \
       --inventory "$INVENTORY_ID" \
       --limit "$HOST_GROUP" \
       --extra_vars "$EXTRA_VARS" | jq -r .id)

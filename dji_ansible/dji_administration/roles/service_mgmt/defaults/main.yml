@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: MIT-0
 ---
 # defaults file for service_mgmt
-service_mgmt_service_name: cron
-service_mgmt_service_state: stopped
-service_mgmt_debug_extra: false
+service_name: cron
+service_state: stopped
+debug_extra: false

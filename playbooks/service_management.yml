@@ -6,12 +6,18 @@
   become_method: ansible.builtin.sudo
   gather_facts: true
   
-  vars:
-    # Override role defaults
-    service_mgmt_service_name: "{{ service_name | default('sshd') }}"
-    # Options: started, stopped, restarted
-    service_mgmt_service_state: "{{ service_state | default('started') }}"
-    service_mgmt_debug_extra: "{{ debug_extra | default(false) }}"
-   
   roles:
     - role: dji_ansible.dji_administration.service_mgmt
+      vars:
+        service_name: "sshd"
+        service_state: "started"
+    
+    - role: dji_ansible.dji_administration.service_mgmt
+      vars:
+        service_name: "cron"
+        service_state: "stopped"
+    
+    - role: dji_ansible.dji_administration.service_mgmt
+      vars:
+        service_name: "apache2"
+        service_state: "restarted"

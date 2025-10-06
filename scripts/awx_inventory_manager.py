@@ -1,6 +1,19 @@
 #!/usr/bin/env python3
 """
 AWX Inventory Management Script
+
+IMPORTANT: SSH Credential Setup
+This script creates AWX resources but does NOT create SSH credentials.
+The SSH credential must be created manually through the AWX web interface:
+
+1. Go to AWX Web UI -> Credentials -> Add
+2. Select "Machine" credential type  
+3. Name: "WSL SSH KEY"
+4. Username: "daniv"
+5. SSH Private Key: Copy content from ~/.ssh/awx_wsl_key_traditional
+
+The awx_wsl_key_traditional key is specifically designed to work with AWX.
+CLI credential creation fails due to SSH key formatting issues.
 """
 
 import json
@@ -285,7 +298,7 @@ class AWXInventoryManager:
             'become_enabled': True,
             'ask_variables_on_launch': True,
             'ask_inventory_on_launch': False,
-            'ask_credential_on_launch': False
+            'ask_credential_on_launch': True
         }
         response = requests.post(url, json=data, headers=headers,
           verify=False, timeout=REQUEST_TIMEOUT)

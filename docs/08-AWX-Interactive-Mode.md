@@ -2,6 +2,30 @@
 
 This guide covers all the interactive capabilities of the `awx_inventory_manager.py` script.
 
+## **Prerequisites: SSH Credential Setup**
+
+**CRITICAL**: Before using any AWX functionality, you must manually create the SSH credential:
+
+### **SSH Key Information**
+- **Key Name**: `awx_wsl_key_traditional` (specifically designed for AWX)
+- **Location**: `~/.ssh/awx_wsl_key_traditional`
+- **Purpose**: Provides SSH access to WSL instances from AWX
+
+### **Manual Credential Creation Steps**
+1. **Access AWX Web Interface**: Go to your AWX URL (usually https://localhost)
+2. **Navigate to Credentials**: Click "Credentials" → "Add"
+3. **Select Credential Type**: Choose "Machine"
+4. **Fill in Details**:
+   - **Name**: `WSL SSH KEY`
+   - **Username**: `daniv`
+   - **SSH Private Key**: Copy the entire content from `~/.ssh/awx_wsl_key_traditional`
+5. **Save**: Click "Save"
+
+### **Why Manual Creation?**
+- CLI credential creation fails due to SSH key formatting issues
+- Web interface properly handles SSH key content and encryption
+- This is the only reliable method for SSH credential setup
+
 ## **Starting Interactive Mode**
 
 ```bash
