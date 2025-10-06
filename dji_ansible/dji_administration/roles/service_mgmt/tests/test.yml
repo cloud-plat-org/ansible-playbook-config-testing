@@ -1,0 +1,11 @@
+# git SPDX-License-Identifier: MIT-0
+---
+- name: Test service management role
+  hosts: localhost
+  become: true
+  become_method: ansible.builtin.sudo
+  roles:
+    - role: . # Reference current directory
+      vars:
+        service_name: cron
+        service_state: stopped

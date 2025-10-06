@@ -69,12 +69,29 @@ jobs:
         run: |
           PLAYBOOKS_FILE=$(mktemp)
           echo "playbooks_file=$PLAYBOOKS_FILE" >> $GITHUB_OUTPUT
+          # Find actual playbooks - only files in playbooks/ directory or root that contain play structure
           find . -name '*.yml' -o -name '*.yaml' | \
             grep -v '.github' | grep -v 'docs/' | \
             grep -v 'awx-ingress.yml' | grep -v 'k8s/' | \
-            grep -v 'kubernetes/' | \
-            grep -v 'requirements.yml' > "$PLAYBOOKS_FILE"
+            grep -v 'kubernetes/' | grep -v 'requirements.yml' | \
+            grep -v 'galaxy.yml' | grep -v 'runtime.yml' | \
+            grep -v '/defaults/' | grep -v '/vars/' | \
+            grep -v '/handlers/' | grep -v '/meta/' | \
+            grep -v '/templates/' | grep -v '/files/' | \
+            grep -v '/tasks/' | grep -v '/tests/' | \
+            grep -v '/inventory/' | grep -v '/scripts/' | \
+            while read -r file; do
+              # Check if it's a playbook by looking for play structure (--- and hosts:)
+              if grep -q "^---" "$file" 2>/dev/null && grep -q "^[[:space:]]*-[[:space:]]*name:" "$file" 2>/dev/null; then
+                echo "$file"
+              fi
+            done > "$PLAYBOOKS_FILE"
           echo "playbooks_count=$(wc -l < "$PLAYBOOKS_FILE")" >> $GITHUB_OUTPUT
+
+      - name: Show found playbooks
+        run: |
+          echo "Found playbooks:"
+          cat ${{ steps.find-playbooks.outputs.playbooks_file }}
 
       - name: Run Ansible Syntax Check
         if: steps.find-playbooks.outputs.playbooks_count > 0

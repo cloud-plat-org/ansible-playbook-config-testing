@@ -1,4 +1,74 @@
-# AWX Configuration - Projects, Inventory & Templates
+# AWX Configuration - Inventory, Groups, Projects & Templates
+
+
+# 1. Create Inventory (no dependencies)
+INVENTORY_ID=$(awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" -f json --conf.color false inventories create \
+  --name "WSL Lab2" \
+  --organization "Default" | jq -r '.id')
+
+# how do I add these hosts to this inventory?
+- **argo_cd_mgt**: `172.22.192.129:2226`
+- **ubuntuAWX**: `172.22.192.129:2225`
+- **wslkali1**: `172.22.192.129:2224`
+- **wslubuntu1**: `172.22.192.129:2223`
+
+
+
+# 2. Create Project (no dependencies)  
+PROJECT_ID=$(awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" -f json --conf.color false projects create \
+  --name "WSL Project" \
+  --organization "Default" \
+  --scm_type "git" \
+  --scm_url "https://github.com/your-repo.git" \
+  --scm_branch "main" | jq -r '.id')
+
+# 3. Create Job Template (requires both inventory and project)
+TEMPLATE_ID=$(awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" -f json --conf.color false job_templates create \
+  --name "Service Management" \
+  --inventory "$INVENTORY_ID" \
+  --project "$PROJECT_ID" \
+  --playbook "playbooks/service_management.yml" | jq -r '.id')
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 ## Overview
 This document covers AWX project creation, inventory setup, host configuration, credential creation, and job template setup for WSL automation.

@@ -1,0 +1,17 @@
+# Service Management Playbook for WSL Instances
+---
+- name: Manage services on WSL instances
+  hosts: all_servers
+  become: true
+  become_method: ansible.builtin.sudo
+  gather_facts: true
+  
+  vars:
+    # Override role defaults
+    service_mgmt_service_name: "{{ service_name | default('sshd') }}"
+    # Options: started, stopped, restarted
+    service_mgmt_service_state: "{{ service_state | default('started') }}"
+    service_mgmt_debug_extra: "{{ debug_extra | default(false) }}"
+   
+  roles:
+    - role: dji_ansible.dji_administration.service_mgmt
