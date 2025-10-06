@@ -139,8 +139,7 @@ class AWXInventoryManager:
                 'variables': json.dumps({
                     'ansible_host': '172.22.192.129',
                     'ansible_port': port,
-                    'ansible_user': 'daniv',
-                    'ansible_ssh_private_key_file': '/home/daniv/.ssh/id_rsa'
+                    'ansible_user': 'daniv'
                 })
             }
             response = requests.post(url, json=data, headers=headers,

@@ -6,7 +6,7 @@ This guide covers all the interactive capabilities of the `awx_inventory_manager
 
 ```bash
 source ~/awx-venv/bin/activate
-python3 -i awx_inventory_manager.py --interactive
+python3 -i ./scripts/awx_inventory_manager.py --interactive
 ```
 
 **Expected startup output:**
