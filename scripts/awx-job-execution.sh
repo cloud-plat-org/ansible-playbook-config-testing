@@ -15,7 +15,7 @@ export HOST_GROUP="all_servers"
 
 # Service Configuration Variables
 export SERVICE_NAME="cron"
-export SERVICE_STATE="stopped" # stopped, started, restarted
+export SERVICE_STATE="started" # stopped, started, restarted
 export DEBUG_EXTRA=false
 
 # Extra Variables JSON
