@@ -60,8 +60,8 @@ yamllint .github/workflows/ansible-ci.yml
 - **SSH Key**: `~/.ssh/awx_wsl_key_traditional` (must be uploaded manually to AWX)
 - **Playbooks**: `playbooks/service_management.yml`
 - **Collections**: `dji_ansible.dji_administration` (custom collection)
-- **Automation**: `scripts/ssh_config.py`, `scripts/awx-diagnostics.sh`
-- **Inventory**: `inventory/wsl_instances.yml`
+- **Automation**: `scripts/ssh_config.py`
+- **Inventory**: `inventory/wsl_instances.yml` (commented out - for local testing only)
 - **GitHub**: `.github/workflows/ansible-ci.yml`
 ---
 
