@@ -69,12 +69,21 @@ jobs:
         run: |
           PLAYBOOKS_FILE=$(mktemp)
           echo "playbooks_file=$PLAYBOOKS_FILE" >> $GITHUB_OUTPUT
+          # Find actual playbooks (files with '---' and 'hosts:' or 'import_playbook:')
           find . -name '*.yml' -o -name '*.yaml' | \
             grep -v '.github' | grep -v 'docs/' | \
             grep -v 'awx-ingress.yml' | grep -v 'k8s/' | \
-            grep -v 'kubernetes/' | \
-            grep -v 'requirements.yml' > "$PLAYBOOKS_FILE"
+            grep -v 'kubernetes/' | grep -v 'requirements.yml' | \
+            grep -v '/defaults/' | grep -v '/vars/' | \
+            grep -v '/handlers/' | grep -v '/meta/' | \
+            grep -v '/templates/' | grep -v '/files/' | \
+            grep -v '/tasks/' | grep -v '/tests/' > "$PLAYBOOKS_FILE"
           echo "playbooks_count=$(wc -l < "$PLAYBOOKS_FILE")" >> $GITHUB_OUTPUT
+
+      - name: Show found playbooks
+        run: |
+          echo "Found playbooks:"
+          cat ${{ steps.find-playbooks.outputs.playbooks_file }}
 
       - name: Run Ansible Syntax Check
         if: steps.find-playbooks.outputs.playbooks_count > 0
