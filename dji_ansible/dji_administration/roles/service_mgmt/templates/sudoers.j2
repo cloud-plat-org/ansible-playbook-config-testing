@@ -1,10 +1,13 @@
 # templates/sudoers.j2
-{% if sudoers_type == "full" %}
-{{ awx_user }} ALL=(ALL) NOPASSWD: ALL
-{% elif sudoers_type == "systemctl" %}
-{{ awx_user }} ALL=(ALL) NOPASSWD: /bin/systemctl stop *, /bin/systemctl start *, /bin/systemctl restart *, /bin/systemctl status *, /bin/systemctl enable *, /bin/systemctl disable *
-{% elif sudoers_type == "minimal" %}
-{{ awx_user }} ALL=(ALL) NOPASSWD: /bin/systemctl stop cron, /bin/systemctl start cron, /bin/systemctl restart cron, /bin/systemctl status cron
-{{ awx_user }} ALL=(ALL) NOPASSWD: /bin/systemctl stop systemd-resolved, /bin/systemctl start systemd-resolved, /bin/systemctl restart systemd-resolved, /bin/systemctl status systemd-resolved
-{{ awx_user }} ALL=(ALL) NOPASSWD: /bin/systemctl stop systemd-networkd, /bin/systemctl start systemd-networkd, /bin/systemctl restart systemd-networkd, /bin/systemctl status systemd-networkd
-{% endif %}
+# This template is not currently used by the service_mgmt role
+# It was created for sudo configuration but the role only manages services
+# 
+# {% if sudoers_type == "full" %}
+# {{ awx_user }} ALL=(ALL) NOPASSWD: ALL
+# {% elif sudoers_type == "systemctl" %}
+# {{ awx_user }} ALL=(ALL) NOPASSWD: /bin/systemctl stop *, /bin/systemctl start *, /bin/systemctl restart *, /bin/systemctl status *, /bin/systemctl enable *, /bin/systemctl disable *
+# {% elif sudoers_type == "minimal" %}
+# {{ awx_user }} ALL=(ALL) NOPASSWD: /bin/systemctl stop cron, /bin/systemctl start cron, /bin/systemctl restart cron, /bin/systemctl status cron
+# {{ awx_user }} ALL=(ALL) NOPASSWD: /bin/systemctl stop systemd-resolved, /bin/systemctl start systemd-resolved, /bin/systemctl restart systemd-resolved, /bin/systemctl status systemd-resolved
+# {{ awx_user }} ALL=(ALL) NOPASSWD: /bin/systemctl stop systemd-networkd, /bin/systemctl start systemd-networkd, /bin/systemctl restart systemd-networkd, /bin/systemctl status systemd-networkd
+# {% endif %}

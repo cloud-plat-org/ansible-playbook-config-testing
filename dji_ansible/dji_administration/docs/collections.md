@@ -171,7 +171,7 @@ collections:
 Build the collection:
 ```bash
 cd dji_ansible/dji_administration/
-ansible-galaxy collection build
+ansible-galaxy collection build --force
 ```
 
 Install locally:
