@@ -69,7 +69,7 @@ jobs:
         run: |
           PLAYBOOKS_FILE=$(mktemp)
           echo "playbooks_file=$PLAYBOOKS_FILE" >> $GITHUB_OUTPUT
-          # Find files that are actual playbooks by checking for 'hosts:' in the content
+          # Find actual playbooks - only files in playbooks/ directory or root that contain play structure
           find . -name '*.yml' -o -name '*.yaml' | \
             grep -v '.github' | grep -v 'docs/' | \
             grep -v 'awx-ingress.yml' | grep -v 'k8s/' | \
@@ -79,8 +79,10 @@ jobs:
             grep -v '/handlers/' | grep -v '/meta/' | \
             grep -v '/templates/' | grep -v '/files/' | \
             grep -v '/tasks/' | grep -v '/tests/' | \
+            grep -v '/inventory/' | grep -v '/scripts/' | \
             while read -r file; do
-              if grep -q "^[[:space:]]*hosts:" "$file" 2>/dev/null; then
+              # Check if it's a playbook by looking for play structure (--- and hosts:)
+              if grep -q "^---" "$file" 2>/dev/null && grep -q "^[[:space:]]*-[[:space:]]*name:" "$file" 2>/dev/null; then
                 echo "$file"
               fi
             done > "$PLAYBOOKS_FILE"
