@@ -2,21 +2,21 @@
 ---
 - name: Stop service if started
   ansible.builtin.service:
-    name: "{{ service_mgmt_service_name }}"
-    state: "{{ service_mgmt_service_state }}"
+    name: "{{ service_name }}"
+    state: "{{ service_state }}"
   register: service_mgmt_stop_result
 
 - name: Show service result summary (clean)
   ansible.builtin.debug:
     msg: |
-      Service: {{ service_mgmt_service_name }}
-      Action: {{ service_mgmt_service_state }}
-      Changed: {{ service_mgmt_stop_result.changed }}
+      Service: {{ service_name }}
+      Action: {{ service_state }}
+      Changed: {{ service_mgmt_stop_result.changed | ternary('YES', 'NO') }}
       Current State: {{ service_mgmt_stop_result.status.ActiveState }}
       Sub State: {{ service_mgmt_stop_result.status.SubState }}
-  when: not service_mgmt_debug_extra
+  when: not debug_extra
 
 - name: Show service result (verbose)
   ansible.builtin.debug:
     msg: "{{ service_mgmt_stop_result }}"
-  when: service_mgmt_debug_extra
+  when: debug_extra

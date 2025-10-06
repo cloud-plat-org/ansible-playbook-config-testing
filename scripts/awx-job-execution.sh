@@ -1,6 +1,16 @@
 #!/bin/bash
 # AWX Job Execution Script
 # Usage: ./scripts/awx-job-execution.sh
+#
+# IMPORTANT: SSH Credential Setup
+# This script uses credential ID 9 "WSL SSH KEY" which contains the awx_wsl_key_traditional
+# The SSH credential MUST be created manually through the AWX web interface:
+# 1. Go to AWX Web UI -> Credentials -> Add
+# 2. Select "Machine" credential type
+# 3. Name: "WSL SSH KEY"
+# 4. Username: "daniv"
+# 5. SSH Private Key: Copy content from ~/.ssh/awx_wsl_key_traditional
+# CLI credential creation fails due to SSH key formatting issues
 
 # Activate AWX virtual environment
 source ~/awx-venv/bin/activate
@@ -42,7 +52,7 @@ launch_job() {
     
     JOB_ID=$(awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" job_templates launch \
       --job_template "$JOB_TEMPLATE_NAME" \
-      --credentials 4 \
+      --credentials 9 \
       --extra_vars "$EXTRA_VARS" | jq -r .id)
     
     echo "Job ID: $JOB_ID"
@@ -57,7 +67,7 @@ launch_job_with_limit() {
     
     JOB_ID=$(awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" job_templates launch \
       --job_template "$JOB_TEMPLATE_NAME" \
-      --credentials 4 \
+      --credentials 9 \
       --limit "$HOST_GROUP" \
       --extra_vars "$EXTRA_VARS" | jq -r .id)
     
@@ -74,10 +84,64 @@ launch_job_with_inventory() {
     
     JOB_ID=$(awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" job_templates launch \
       --job_template "$JOB_TEMPLATE_NAME" \
-      --credentials 4 \
+      --credentials 9 \
       --inventory "$INVENTORY_ID" \
       --limit "$HOST_GROUP" \
       --extra_vars "$EXTRA_VARS" | jq -r .id)
+    
+    echo "Job ID: $JOB_ID"
+    export JOB_ID
+    return 0
+}
+
+# Function to launch job with playbook defaults only
+launch_job_defaults() {
+    echo "=== Launching Job with Playbook Defaults ==="
+    echo "Using playbook defaults (no extra variables passed)"
+    echo "This will use: service_name=sshd, service_state=started, debug_extra=false"
+    
+    JOB_ID=$(awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" job_templates launch \
+      --job_template "$JOB_TEMPLATE_NAME" \
+      --credentials 9 | jq -r .id)
+    
+    echo "Job ID: $JOB_ID"
+    export JOB_ID
+    return 0
+}
+
+# Function to launch job with interactive prompts
+launch_job_interactive() {
+    echo "=== Launching Job with Interactive Input ==="
+    
+    # Prompt for service name
+    read -p "Enter Service Name (e.g., sshd, cron, systemd-resolved): " INTERACTIVE_SERVICE_NAME
+    
+    # Prompt for service state
+    echo "Available states: started, stopped, restarted"
+    read -p "Enter Service State: " INTERACTIVE_SERVICE_STATE
+    
+    # Prompt for debug mode
+    read -p "Enable verbose debug output? (y/N): " INTERACTIVE_DEBUG
+    if [[ "$INTERACTIVE_DEBUG" =~ ^[Yy]$ ]]; then
+        INTERACTIVE_DEBUG_EXTRA=true
+    else
+        INTERACTIVE_DEBUG_EXTRA=false
+    fi
+    
+    # Create extra variables JSON
+    INTERACTIVE_EXTRA_VARS="{\"service_name\": \"$INTERACTIVE_SERVICE_NAME\", \"service_state\": \"$INTERACTIVE_SERVICE_STATE\", \"debug_extra\": $INTERACTIVE_DEBUG_EXTRA}"
+    
+    echo
+    echo "Launching job with:"
+    echo "  Service: $INTERACTIVE_SERVICE_NAME"
+    echo "  State: $INTERACTIVE_SERVICE_STATE"
+    echo "  Debug: $INTERACTIVE_DEBUG_EXTRA"
+    echo
+    
+    JOB_ID=$(awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" job_templates launch \
+      --job_template "$JOB_TEMPLATE_NAME" \
+      --credentials 9 \
+      --extra_vars "$INTERACTIVE_EXTRA_VARS" | jq -r .id)
     
     echo "Job ID: $JOB_ID"
     export JOB_ID
@@ -128,7 +192,9 @@ update_project() {
 show_usage() {
     echo "Available functions:"
     echo "  run_diagnostics              - Run AWX diagnostics"
-    echo "  launch_job                   - Launch job with extra variables"
+    echo "  launch_job                   - Launch job with extra variables (from script config)"
+    echo "  launch_job_defaults          - Launch job with playbook defaults only (no extra vars)"
+    echo "  launch_job_interactive       - Launch job with interactive prompts for service name/state"
     echo "  launch_job_with_limit        - Launch job with host group limit"
     echo "  launch_job_with_inventory    - Launch job with explicit inventory"
     echo "  monitor_job                  - Monitor the last launched job (status + output)"
@@ -137,7 +203,9 @@ show_usage() {
     echo
     echo "Examples:"
     echo "  run_diagnostics"
-    echo "  launch_job && monitor_job"
+    echo "  launch_job && monitor_job              # Uses script variables (cron -> started)"
+    echo "  launch_job_defaults && monitor_job     # Uses playbook defaults (sshd -> started)"
+    echo "  launch_job_interactive && monitor_job  # Interactive prompts for service name/state"
     echo "  get_job_output 226"
     echo "  update_project"
 }
