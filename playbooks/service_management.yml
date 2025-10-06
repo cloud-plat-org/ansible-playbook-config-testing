@@ -1,7 +1,7 @@
 # Service Management Playbook for WSL Instances
 ---
 - name: Manage services on WSL instances
-  hosts: wsl_instances
+  hosts: all_servers
   become: true
   become_method: ansible.builtin.sudo
   gather_facts: true
