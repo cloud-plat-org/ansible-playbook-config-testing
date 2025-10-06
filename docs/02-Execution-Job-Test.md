@@ -25,10 +25,20 @@ Before running any AWX jobs, you must create the SSH credential manually:
 - JOB_TEMPLATE_NAME="WSL Service Management"
 - PROJECT_NAME="WSL Automation" 
 - HOST_GROUP="all_servers"
-- SERVICE_NAME="cron"
-- SERVICE_STATE="stopped"
+- SERVICE_NAME="cron" (for `launch_job`)
+- SERVICE_STATE="started" (for `launch_job`)
 - DEBUG_EXTRA=false
 - CREDENTIAL_ID=9 (references "WSL SSH KEY")
+
+**Available Functions:**
+- `launch_job` - Launch with script variables (cron → started)
+- `launch_job_defaults` - Launch with playbook defaults (sshd → started)
+- `launch_job_with_limit` - Launch with host group limit
+- `launch_job_with_inventory` - Launch with explicit inventory
+- `monitor_job` - Monitor job execution
+- `get_job_output [JOB_ID]` - Get specific job output
+- `update_project` - Update project repository
+- `run_diagnostics` - Run AWX diagnostics
 
 ### 0. Diagnostic Commands (Run First)
 ```bash
@@ -44,15 +54,31 @@ This script will show:
 - Job template configuration
 - Recent job history
 
-### 1. Launch Job with Extra Variables
+### 1. Launch Job Options
+
+#### Option A: Launch with Script Variables (Extra Variables)
 ```bash
 source ~/awx-venv/bin/activate
 # Source the script to load functions and variables
 source ./scripts/awx-job-execution.sh
 
-# Launch service lifecycle test
+# Launch with script configuration: service_name=cron, service_state=started
 launch_job
 ```
+
+#### Option B: Launch with Playbook Defaults (No Extra Variables)
+```bash
+source ~/awx-venv/bin/activate
+# Source the script to load functions and variables
+source ./scripts/awx-job-execution.sh
+
+# Launch with playbook defaults: service_name=sshd, service_state=started
+launch_job_defaults
+```
+
+**Difference Between Launch Options:**
+- **`launch_job`**: Uses script variables (service_name=cron, service_state=started) - passes extra variables to AWX
+- **`launch_job_defaults`**: Uses playbook defaults (service_name=sshd, service_state=started) - no extra variables passed
 
 ### 2. Monitor Job Execution
 ```bash

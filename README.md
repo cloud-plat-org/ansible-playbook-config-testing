@@ -5,83 +5,28 @@ This comprehensive guide provides step-by-step instructions to set up AWX on Min
 
 ## Quick Start
 For experienced users who want to get started quickly:
-1. [Prerequisites](docs/01-Prerequisites.md) - System requirements, tools, and WSL configuration
-2. [Infrastructure Setup](docs/02-Infrastructure-Setup.md) - Docker, Minikube, tools installation
-3. [AWX Installation](docs/03-AWX-Installation.md) - AWX operator, deployment, HTTPS
-4. [SSH Authentication](docs/04-SSH-Authentication.md) - SSH keys, credential setup
-5. [AWX Configuration](docs/05-AWX-Configuration.md) - Projects, inventory, job templates
-6. [Playbook Development](docs/06-Playbook-Development.md) - Ansible playbooks
-7. [Testing & Validation](docs/07-Testing-Validation.md) - Job testing, expected outputs
-8. [Daily Operations](docs/08-Daily-Operations.md) - Startup scripts, maintenance
-9. [Troubleshooting](docs/09-Troubleshooting.md) - Common issues and solutions
+1. [AWX Interactive Mode](docs/01-AWX-Interactive-Mode.md) - AWX setup and interactive management
+2. [Execution Job Test](docs/02-Execution-Job-Test.md) - Job execution and testing procedures
 
 ---
 
 ## Documentation Structure
 
-### [01-Prerequisites.md](docs/01-Prerequisites.md)
-**System Requirements, Tools & WSL Configuration**
-- Hardware requirements (RAM, CPU, storage)
-- Software prerequisites (Docker Desktop, WSL)
-- Required tools (kubectl, jq, git, openssl)
-- WSL instance configuration (Ubuntu-22.04, Ubuntu-24.04, Kali-Linux)
-- SSH service setup and passwordless sudo
+### [01-AWX-Interactive-Mode.md](docs/01-AWX-Interactive-Mode.md)
+**AWX Setup and Interactive Management**
+- SSH credential setup (critical prerequisites)
+- AWX inventory management using Python scripts
+- Interactive mode for AWX resource management
+- Complete setup automation with `awx_inventory_manager.py`
+- Troubleshooting and diagnostic procedures
 
-### [02-Infrastructure-Setup.md](docs/02-Infrastructure-Setup.md)
-**Docker, Minikube & Tools Installation**
-- Docker Desktop startup
-- Minikube installation and configuration
-- Required tools installation
-- Network and tunnel setup
-
-### [03-AWX-Installation.md](docs/03-AWX-Installation.md)
-**AWX Operator & Instance Deployment**
-- AWX Operator installation
-- AWX instance deployment
-- HTTPS ingress configuration
-- AWX CLI setup and testing
-
-### [04-SSH-Authentication.md](docs/04-SSH-Authentication.md)
-**SSH Key Authentication Setup**
-- SSH key pair generation
-- Public key deployment
-- Authentication testing
-- Key format verification
-
-### [05-AWX-Configuration.md](docs/05-AWX-Configuration.md)
-**AWX Projects, Inventory & Templates**
-- Project creation and Git integration
-- Inventory and host group setup
-- Host addition and configuration
-- Credential and job template creation
-
-### [06-Playbook-Development.md](docs/06-Playbook-Development.md)
-**Ansible Playbook Creation**
-- AWX integration setup
-- Current playbook structure
-- Development workflow
-- Testing and validation
-
-### [07-Testing-Validation.md](docs/07-Testing-Validation.md)
-**Job Testing & Validation**
-- Pre-test verification
-- AWX job testing
-- Expected output verification
-- Troubleshooting test failures
-
-### [08-Daily-Operations.md](docs/08-Daily-Operations.md)
-**Startup Scripts & Maintenance**
-- Daily startup workflow
-- Automation scripts
-- Maintenance procedures
-- Monitoring and health checks
-
-### [09-Troubleshooting.md](docs/09-Troubleshooting.md)
-**Common Issues & Solutions**
-- Minikube connection issues
-- SSH authentication problems
-- AWX job failures
-- Network and service issues
+### [02-Execution-Job-Test.md](docs/02-Execution-Job-Test.md)
+**Job Execution and Testing Procedures**
+- AWX job execution scripts and functions
+- Launch options: script variables vs playbook defaults
+- Job monitoring and output retrieval
+- Diagnostic commands and testing workflows
+- SSH credential requirements and setup
 
 ---
 
@@ -111,23 +56,25 @@ yamllint .github/workflows/ansible-ci.yml
 - **CLI**: `awx --conf.host https://localhost:443 -k --conf.token "$AWX_TOKEN"`
 
 ### Key Files
-- **AWX Config**: `docs/awx-deploy.yml`, `docs/awx-ingress.yml`
-- **SSH Key**: `~/.ssh/awx_wsl_key_traditional`
-- **Playbooks**: `test_service_lifecycle.yml`, `configure_new_wsl_instances.yml`
-- **Collections**: `requirements.yml` (Ansible collections: `community.general`, `ansible.posix`)
-- **Automation**: `scripts/ssh_config.py`
-- **Standards**: `CODING_STANDARDS.md`, `.pylintrc`
-- **GitHub**: `.github/workflows/ansible-ci.yml`, `.github/CODEOWNERS`
+- **AWX Scripts**: `scripts/awx_inventory_manager.py`, `scripts/awx-job-execution.sh`
+- **SSH Key**: `~/.ssh/awx_wsl_key_traditional` (must be uploaded manually to AWX)
+- **Playbooks**: `playbooks/service_management.yml`
+- **Collections**: `dji_ansible.dji_administration` (custom collection)
+- **Automation**: `scripts/ssh_config.py`, `scripts/awx-diagnostics.sh`
+- **Inventory**: `inventory/wsl_instances.yml`
+- **GitHub**: `.github/workflows/ansible-ci.yml`
 ---
 
 ## Success Criteria
 
 This configuration provides:
 - **Fully automated AWX deployment** on Minikube
-- **SSH key-based authentication** (no password prompts)
+- **SSH key-based authentication** with `awx_wsl_key_traditional`
+- **Manual SSH credential setup** through AWX web interface (required)
 - **Non-interactive privilege escalation** via sudoers
 - **Secure HTTPS access** with self-signed certificates
 - **Multi-target automation** across different WSL distributions
+- **Custom Ansible collection** for service management
 - **Production-ready configuration** with proper error handling
 
 The setup is completely reproducible and eliminates all interactive authentication requirements.
@@ -137,9 +84,9 @@ The setup is completely reproducible and eliminates all interactive authenticati
 ## Getting Help
 
 If you encounter issues:
-1. Check the [Troubleshooting](docs/09-Troubleshooting.md) guide first
-2. Verify each phase was completed successfully
-3. Check the logs and status of all components
-4. Ensure all prerequisites are met
+1. Check the [AWX Interactive Mode](docs/01-AWX-Interactive-Mode.md) guide for setup issues
+2. Review the [Execution Job Test](docs/02-Execution-Job-Test.md) guide for job execution problems
+3. Ensure SSH credentials are created manually through AWX web interface
+4. Verify all prerequisites are met and scripts are properly configured
 
-For specific issues, refer to the relevant detailed documentation file.
+For specific issues, refer to the relevant detailed documentation file or use the diagnostic scripts provided.

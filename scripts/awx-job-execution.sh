@@ -94,6 +94,21 @@ launch_job_with_inventory() {
     return 0
 }
 
+# Function to launch job with playbook defaults only
+launch_job_defaults() {
+    echo "=== Launching Job with Playbook Defaults ==="
+    echo "Using playbook defaults (no extra variables passed)"
+    echo "This will use: service_name=sshd, service_state=started, debug_extra=false"
+    
+    JOB_ID=$(awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" job_templates launch \
+      --job_template "$JOB_TEMPLATE_NAME" \
+      --credentials 9 | jq -r .id)
+    
+    echo "Job ID: $JOB_ID"
+    export JOB_ID
+    return 0
+}
+
 # Function to monitor job
 monitor_job() {
     if [ -z "$JOB_ID" ]; then
@@ -138,7 +153,8 @@ update_project() {
 show_usage() {
     echo "Available functions:"
     echo "  run_diagnostics              - Run AWX diagnostics"
-    echo "  launch_job                   - Launch job with extra variables"
+    echo "  launch_job                   - Launch job with extra variables (from script config)"
+    echo "  launch_job_defaults          - Launch job with playbook defaults only (no extra vars)"
     echo "  launch_job_with_limit        - Launch job with host group limit"
     echo "  launch_job_with_inventory    - Launch job with explicit inventory"
     echo "  monitor_job                  - Monitor the last launched job (status + output)"
@@ -147,7 +163,8 @@ show_usage() {
     echo
     echo "Examples:"
     echo "  run_diagnostics"
-    echo "  launch_job && monitor_job"
+    echo "  launch_job && monitor_job              # Uses script variables (cron -> started)"
+    echo "  launch_job_defaults && monitor_job     # Uses playbook defaults (sshd -> started)"
     echo "  get_job_output 226"
     echo "  update_project"
 }
