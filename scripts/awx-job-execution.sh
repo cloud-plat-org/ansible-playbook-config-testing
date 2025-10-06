@@ -15,7 +15,7 @@ export HOST_GROUP="all_servers"
 
 # Service Configuration Variables
 export SERVICE_NAME="cron"
-export SERVICE_STATE="stopped"
+export SERVICE_STATE="stopped" # stopped, started, restarted
 export DEBUG_EXTRA=false
 
 # Extra Variables JSON
@@ -42,6 +42,7 @@ launch_job() {
     
     JOB_ID=$(awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" job_templates launch \
       --job_template "$JOB_TEMPLATE_NAME" \
+      --credentials 4 \
       --extra_vars "$EXTRA_VARS" | jq -r .id)
     
     echo "Job ID: $JOB_ID"
@@ -56,6 +57,7 @@ launch_job_with_limit() {
     
     JOB_ID=$(awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" job_templates launch \
       --job_template "$JOB_TEMPLATE_NAME" \
+      --credentials 4 \
       --limit "$HOST_GROUP" \
       --extra_vars "$EXTRA_VARS" | jq -r .id)
     
@@ -72,6 +74,7 @@ launch_job_with_inventory() {
     
     JOB_ID=$(awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" job_templates launch \
       --job_template "$JOB_TEMPLATE_NAME" \
+      --credentials 4 \
       --inventory "$INVENTORY_ID" \
       --limit "$HOST_GROUP" \
       --extra_vars "$EXTRA_VARS" | jq -r .id)
