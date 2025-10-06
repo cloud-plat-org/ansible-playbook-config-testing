@@ -33,6 +33,7 @@ Before running any AWX jobs, you must create the SSH credential manually:
 **Available Functions:**
 - `launch_job` - Launch with script variables (cron → started)
 - `launch_job_defaults` - Launch with playbook defaults (sshd → started)
+- `launch_job_interactive` - Launch with interactive prompts for service name/state
 - `launch_job_with_limit` - Launch with host group limit
 - `launch_job_with_inventory` - Launch with explicit inventory
 - `monitor_job` - Monitor job execution
@@ -53,6 +54,8 @@ This script will show:
 - Groups in the inventory
 - Job template configuration
 - Recent job history
+
+**Note**: The `awx-diagnostics.sh` script has been removed. Use the `run_diagnostics` function instead.
 
 ### 1. Launch Job Options
 
@@ -76,9 +79,20 @@ source ./scripts/awx-job-execution.sh
 launch_job_defaults
 ```
 
+#### Option C: Launch with Interactive Prompts
+```bash
+source ~/awx-venv/bin/activate
+# Source the script to load functions and variables
+source ./scripts/awx-job-execution.sh
+
+# Launch with interactive prompts for service name and state
+launch_job_interactive
+```
+
 **Difference Between Launch Options:**
 - **`launch_job`**: Uses script variables (service_name=cron, service_state=started) - passes extra variables to AWX
 - **`launch_job_defaults`**: Uses playbook defaults (service_name=sshd, service_state=started) - no extra variables passed
+- **`launch_job_interactive`**: Prompts for service name, state, and debug mode - creates custom extra variables
 
 ### 2. Monitor Job Execution
 ```bash

@@ -21,3 +21,4 @@
       vars:
         service_name: "systemd-resolved"
         service_state: "restarted"
+      when: ansible_distribution != "Kali"

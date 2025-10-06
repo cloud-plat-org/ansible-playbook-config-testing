@@ -109,6 +109,45 @@ launch_job_defaults() {
     return 0
 }
 
+# Function to launch job with interactive prompts
+launch_job_interactive() {
+    echo "=== Launching Job with Interactive Input ==="
+    
+    # Prompt for service name
+    read -p "Enter Service Name (e.g., sshd, cron, systemd-resolved): " INTERACTIVE_SERVICE_NAME
+    
+    # Prompt for service state
+    echo "Available states: started, stopped, restarted"
+    read -p "Enter Service State: " INTERACTIVE_SERVICE_STATE
+    
+    # Prompt for debug mode
+    read -p "Enable verbose debug output? (y/N): " INTERACTIVE_DEBUG
+    if [[ "$INTERACTIVE_DEBUG" =~ ^[Yy]$ ]]; then
+        INTERACTIVE_DEBUG_EXTRA=true
+    else
+        INTERACTIVE_DEBUG_EXTRA=false
+    fi
+    
+    # Create extra variables JSON
+    INTERACTIVE_EXTRA_VARS="{\"service_name\": \"$INTERACTIVE_SERVICE_NAME\", \"service_state\": \"$INTERACTIVE_SERVICE_STATE\", \"debug_extra\": $INTERACTIVE_DEBUG_EXTRA}"
+    
+    echo
+    echo "Launching job with:"
+    echo "  Service: $INTERACTIVE_SERVICE_NAME"
+    echo "  State: $INTERACTIVE_SERVICE_STATE"
+    echo "  Debug: $INTERACTIVE_DEBUG_EXTRA"
+    echo
+    
+    JOB_ID=$(awx --conf.host https://localhost -k --conf.token "$AWX_TOKEN" job_templates launch \
+      --job_template "$JOB_TEMPLATE_NAME" \
+      --credentials 9 \
+      --extra_vars "$INTERACTIVE_EXTRA_VARS" | jq -r .id)
+    
+    echo "Job ID: $JOB_ID"
+    export JOB_ID
+    return 0
+}
+
 # Function to monitor job
 monitor_job() {
     if [ -z "$JOB_ID" ]; then
@@ -155,6 +194,7 @@ show_usage() {
     echo "  run_diagnostics              - Run AWX diagnostics"
     echo "  launch_job                   - Launch job with extra variables (from script config)"
     echo "  launch_job_defaults          - Launch job with playbook defaults only (no extra vars)"
+    echo "  launch_job_interactive       - Launch job with interactive prompts for service name/state"
     echo "  launch_job_with_limit        - Launch job with host group limit"
     echo "  launch_job_with_inventory    - Launch job with explicit inventory"
     echo "  monitor_job                  - Monitor the last launched job (status + output)"
@@ -165,6 +205,7 @@ show_usage() {
     echo "  run_diagnostics"
     echo "  launch_job && monitor_job              # Uses script variables (cron -> started)"
     echo "  launch_job_defaults && monitor_job     # Uses playbook defaults (sshd -> started)"
+    echo "  launch_job_interactive && monitor_job  # Interactive prompts for service name/state"
     echo "  get_job_output 226"
     echo "  update_project"
 }

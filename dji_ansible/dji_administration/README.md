@@ -63,7 +63,7 @@ Manages system services (start, stop, restart, status) using systemd.
     
     - role: dji_ansible.dji_administration.service_mgmt
       vars:
-        service_name: systemd-resolved
+        service_name: cron
         service_state: stopped
 ```
 
