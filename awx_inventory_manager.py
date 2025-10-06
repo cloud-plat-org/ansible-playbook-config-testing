@@ -170,7 +170,7 @@ class AWXInventoryManager:
 
     def create_project(self, name="WSL Automation", scm_type="git",
                       scm_url="https://github.com/cloud-plat-org/ansible-playbook-config-testing",
-                      scm_branch="CLPLAT-2230"):
+                      scm_branch="main"): # CLPLAT-2230, main
         """Create or get existing project"""
         url = f"{self.base_url}/api/v2/projects/"
         headers = {
