@@ -11,7 +11,7 @@
     msg: |
       Service: {{ service_mgmt_service_name }}
       Action: {{ service_mgmt_service_state }}
-      Changed: {{ service_mgmt_stop_result.changed | ternary('YES', 'NO') }}
+      Changed: {{ service_mgmt_stop_result.changed }}
       Current State: {{ service_mgmt_stop_result.status.ActiveState }}
       Sub State: {{ service_mgmt_stop_result.status.SubState }}
   when: not service_mgmt_debug_extra
