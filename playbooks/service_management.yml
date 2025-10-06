@@ -19,5 +19,5 @@
     
     - role: dji_ansible.dji_administration.service_mgmt
       vars:
-        service_name: "apache2"
+        service_name: "systemd-resolved"
         service_state: "restarted"
