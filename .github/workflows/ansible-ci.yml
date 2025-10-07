@@ -11,14 +11,6 @@ on:
       - '.ansible-lint'
       - 'requirements*.txt'
       - 'dji_ansible/dji_administration/**'
-  push:
-    branches: [main]
-    paths:
-      - '**/*.yml'
-      - '**/*.yaml'
-      - '.ansible-lint'
-      - 'requirements*.txt'
-      - 'dji_ansible/dji_administration/**'
 
 jobs:
   lint:
