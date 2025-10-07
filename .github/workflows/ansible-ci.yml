@@ -12,7 +12,8 @@ on:
       - 'requirements*.txt'
       - 'dji_ansible/dji_administration/**'
   push:
-    branches: [main]
+    branches:
+      - '*'
     paths:
       - '**/*.yml'
       - '**/*.yaml'
